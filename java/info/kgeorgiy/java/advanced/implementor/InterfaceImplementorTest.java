@@ -75,6 +75,16 @@ public class InterfaceImplementorTest extends BaseTest {
         test(false, Descriptor.class, CachedRowSet.class, DynAny.class);
     }
 
+    @Test
+    public void test05_standardNonInterfaces() throws IOException {
+        test(true, void.class, String[].class, int[].class, String.class, boolean.class);
+    }
+
+    @Test
+    public void test06_java8Interfaces() throws IOException {
+        test(false, InterfaceWithStaticMethod.class, InterfaceWithDefaultMethod.class);
+    }
+
     protected void test(final boolean shouldFail, final Class<?>... classes) throws IOException {
         final Path root = getRoot();
         try {
