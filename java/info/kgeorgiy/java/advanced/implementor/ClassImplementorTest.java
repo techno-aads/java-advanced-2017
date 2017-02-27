@@ -1,5 +1,6 @@
 package info.kgeorgiy.java.advanced.implementor;
 
+import info.kgeorgiy.java.advanced.implementor.examples.ClassWithPackagePrivateConstructor;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
@@ -72,4 +73,8 @@ public class ClassImplementorTest extends InterfaceImplementorTest {
     public void test16_enum() throws IOException {
         test(true, Enum.class, Formatter.BigDecimalLayoutForm.class);
     }
-}
+
+    @Test
+    public void test17_packagePrivateConstructor() throws IOException {
+        test(false, ClassWithPackagePrivateConstructor.class);
+    }}
