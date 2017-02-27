@@ -16,6 +16,7 @@ import javax.management.remote.rmi.RMIIIOPServerImpl;
 import javax.management.remote.rmi.RMIServerImpl;
 import javax.naming.ldap.LdapReferralException;
 import java.io.IOException;
+import java.util.Formatter;
 
 /**
  * @author Georgiy Korneev (kgeorgiy@kgeorgiy.info)
@@ -65,5 +66,10 @@ public class ClassImplementorTest extends InterfaceImplementorTest {
     @Test
     public void test15_inheritedNonPublicAbstractMethod() throws IOException {
         test(false, ORB.class);
+    }
+
+    @Test
+    public void test16_enum() throws IOException {
+        test(true, Enum.class, Formatter.BigDecimalLayoutForm.class);
     }
 }
