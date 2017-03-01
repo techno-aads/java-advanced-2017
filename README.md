@@ -3,14 +3,34 @@
 
 [Условия домашних заданий](http://www.kgeorgiy.info/courses/java-advanced/homeworks.html)
 
+Домашнее задание 4. JarImplementor
+----
+Класс должен реализовывать интерфейс
+[JarImpler](java/info/kgeorgiy/java/advanced/implementor/JarImpler.java).
+
+* Протестировать простую версию задания:
+
+        info.kgeorgiy.java.advanced.implementor.Tester jar-interface <полное имя класса>
+
+* Протестировать сложную версию задания:
+
+        info.kgeorgiy.java.advanced.implementor.Tester jar-class <полное имя класса>
+
+Исходный код тестов:
+
+* [Простой вариант](java/info/kgeorgiy/java/advanced/implementor/InterfaceJarImplementorTest.java)
+* [Сложный вариант](java/info/kgeorgiy/java/advanced/implementor/ClassJarImplementorTest.java)
+
+
 Домашнее задание 3. Implementor
 ----
+
+Класс должен реализовывать интерфейс
+[Impler](java/info/kgeorgiy/java/advanced/implementor/Impler.java).
+
 * Протестировать простую версию задания:
 
         info.kgeorgiy.java.advanced.implementor.Tester interface <полное имя класса>
-
-  Класс должен реализовывать интерфейс
-  [Impler](java/info/kgeorgiy/java/advanced/implementor/Impler.java).
 
 * Протестировать сложную версию задания:
 

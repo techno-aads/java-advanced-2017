@@ -77,4 +77,5 @@ public class ClassImplementorTest extends InterfaceImplementorTest {
     @Test
     public void test17_packagePrivateConstructor() throws IOException {
         test(false, ClassWithPackagePrivateConstructor.class);
-    }}
+    }
+}
