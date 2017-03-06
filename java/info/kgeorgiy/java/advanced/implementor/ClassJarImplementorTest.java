@@ -19,6 +19,14 @@ public class ClassJarImplementorTest extends ClassImplementorTest {
         assertConstructor(Impler.class, JarImpler.class);
     }
 
+    @Test
+    public void test15_encoding() throws IOException {
+        test(false, Arabic.class);
+        test(false, Hebrew.class);
+        test(false, Greek.class);
+        test(false, Russian.class);
+    }
+
     @Override
     protected void implement(final Path root, final Impler implementor, final Class<?> clazz) throws ImplerException {
         super.implement(root, implementor, clazz);
