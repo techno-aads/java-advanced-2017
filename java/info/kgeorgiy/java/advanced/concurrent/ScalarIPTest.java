@@ -78,7 +78,7 @@ public class ScalarIPTest<P extends ScalarIP> extends BaseTest {
 
     protected List<Integer> randomList(final int size) {
         final int[] pool = random.ints(Math.min(size, 1000_000)).toArray();
-        return IntStream.generate(() -> pool[random.nextInt(pool.length)]).boxed().collect(Collectors.toList());
+        return IntStream.generate(() -> pool[random.nextInt(pool.length)]).limit(size).boxed().collect(Collectors.toList());
     }
 
     @SuppressWarnings("unchecked")
