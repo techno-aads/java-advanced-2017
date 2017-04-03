@@ -21,9 +21,11 @@ import java.util.stream.IntStream;
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ScalarIPTest<P extends ScalarIP> extends BaseTest {
+    public static final int PROCESSORS = Runtime.getRuntime().availableProcessors();
+
     public static final Comparator<Integer> BURN_COMPARATOR = (o1, o2) -> {
         int total = o1 + o2;
-        for (int i = 0; i < 50_000_000; i++) {
+        for (int i = 0; i < 5_000_000; i++) {
             total += i;
         }
         if (total == o1 + o2) {
@@ -75,31 +77,40 @@ public class ScalarIPTest<P extends ScalarIP> extends BaseTest {
     @Test
     public void test05_sleepPerformance() throws InterruptedException {
         final List<Integer> data = randomList(200);
-        final int procs = Runtime.getRuntime().availableProcessors();
-        final double speedup = speedup(data, SLEEP_COMPARATOR, procs * 2, procs * 2);
-        Assert.assertTrue("Not parallel", speedup > procs / 1.5);
+        final double speedup = speedup(data, SLEEP_COMPARATOR, PROCESSORS * 2);
+        Assert.assertTrue("Not parallel", speedup > PROCESSORS / 1.5);
     }
 
     @Test
     public void test06_burnPerformance() throws InterruptedException {
         final List<Integer> data = randomList(200);
-        final int procs = Runtime.getRuntime().availableProcessors();
-        final double speedup = speedup(data, BURN_COMPARATOR, procs, procs);
-        Assert.assertTrue("Not parallel", speedup > procs / 1.5);
-        Assert.assertTrue("Too parallel", speedup < procs * 1.2);
+        final double speedup = speedup(data, BURN_COMPARATOR, PROCESSORS);
+        Assert.assertTrue("Not parallel", speedup > PROCESSORS / 1.5);
+        Assert.assertTrue("Too parallel", speedup < PROCESSORS * 1.2);
     }
 
-    protected double speedup(final List<Integer> data, final Comparator<Integer> sleepComparator, final int parts, final int threads) throws InterruptedException {
-        final long time1 = speed(1, 4, data, ScalarIP::maximum, sleepComparator);
-        final long time2 = speed(threads, 4 * parts, data, ScalarIP::maximum, sleepComparator);
+    protected double speedup(final List<Integer> data, final Comparator<Integer> comparator, final int threads) throws InterruptedException {
+        final ConcurrentIntConsumer consumer = t -> createInstance(t).maximum(getSubtasks(t, threads), data, comparator);
+
+        // Warm up
+        for (int i = 0; i < 10; i++) {
+            speed(threads, consumer);
+        }
+
+        final long time1 = speed(1, consumer);
+        final long time2 = speed(threads, consumer);
         final double speedup = time1 / (double) time2;
-        System.err.format("Speed up %.1f\n", speedup);
+        System.err.format("Speed up %.1f for %d threads%n", speedup, threads);
         return speedup;
     }
 
-    private long speed(final int threads, final int subtasks, final List<Integer> data, final ConcurrentFunction<P, Integer, Comparator<Integer>> f, final Comparator<Integer> comparator) throws InterruptedException {
+    protected int getSubtasks(final int threads, final int totalThreads) {
+        return threads;
+    }
+
+    private long speed(final int threads, final ConcurrentIntConsumer consumer) throws InterruptedException {
         final long start = System.nanoTime();
-        f.apply(createInstance(threads), subtasks, data, comparator);
+        consumer.accept(threads);
         return System.nanoTime() - start;
     }
 
@@ -125,6 +136,10 @@ public class ScalarIPTest<P extends ScalarIP> extends BaseTest {
 
     interface ConcurrentFunction<P, T, U> {
         T apply(P instance, int threads, List<Integer> data, U value) throws InterruptedException;
+    }
+
+    interface ConcurrentIntConsumer {
+        void accept(int threads) throws InterruptedException;
     }
 
     protected List<Integer> randomList(final int size) {
