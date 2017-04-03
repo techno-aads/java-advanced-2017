@@ -76,32 +76,36 @@ public class ScalarIPTest<P extends ScalarIP> extends BaseTest {
 
     @Test
     public void test05_sleepPerformance() throws InterruptedException {
-        final List<Integer> data = randomList(50 * PROCESSORS);
+        final List<Integer> data = randomList(100 * PROCESSORS);
         final double speedup = speedup(data, SLEEP_COMPARATOR, PROCESSORS * 2);
-        Assert.assertTrue("Not parallel", speedup > PROCESSORS / 1.5);
+        Assert.assertTrue("Not parallel", speedup > 0.66);
     }
 
     @Test
     public void test06_burnPerformance() throws InterruptedException {
-        final List<Integer> data = randomList(50 * PROCESSORS);
+        final List<Integer> data = randomList(100 * PROCESSORS);
         final double speedup = speedup(data, BURN_COMPARATOR, PROCESSORS);
-        Assert.assertTrue("Not parallel", speedup > PROCESSORS / 1.5);
-        Assert.assertTrue("Too parallel", speedup < PROCESSORS * 1.2);
+        Assert.assertTrue("Not parallel", speedup > 0.66);
+        Assert.assertTrue("Too parallel", speedup < 1.2);
     }
 
+//    private double expectedTime(final int threads, final int totalThreads, final List<Integer> data) {
+//        return getSubtasks(threads, totalThreads) + data.size() / threads;
+//    }
+//
     protected double speedup(final List<Integer> data, final Comparator<Integer> comparator, final int threads) throws InterruptedException {
-        final ConcurrentIntConsumer consumer = t -> createInstance(t).maximum(getSubtasks(t, threads), data, comparator);
+//        final ConcurrentIntConsumer consumer = t -> createInstance(t).maximum(getSubtasks(t, threads), data, comparator);
 
-        // Warm up
-        System.err.println("    Warmup");
+        System.err.println("    Warm up");
         for (int i = 0; i < 5; i++) {
-            speed(threads, consumer);
+            performance(threads, threads, data, ScalarIP::maximum, comparator);
         }
+        System.err.println("    Measurement");
 
-        final long time1 = speed(1, consumer);
-        final long time2 = speed(threads, consumer);
-        final double speedup = time1 / (double) time2;
-        System.err.format("    Speedup %.1f for %d threads%n", speedup, threads);
+        final double performance1 = performance(1, threads, data, ScalarIP::maximum, comparator);
+        final double performance2 = performance(threads, threads, data, ScalarIP::maximum, comparator);
+        final double speedup = performance2 / performance1;
+        System.err.format("    Performance ratio %.1f for %d threads (%.1f %.1f ms/op)%n", speedup, threads, performance1, performance2);
         return speedup;
     }
 
@@ -109,10 +113,14 @@ public class ScalarIPTest<P extends ScalarIP> extends BaseTest {
         return threads;
     }
 
-    private long speed(final int threads, final ConcurrentIntConsumer consumer) throws InterruptedException {
+   private double performance(final int threads, final int totalThreads, final List<Integer> data, final ConcurrentFunction<P, Integer, Comparator<Integer>> f, final Comparator<Integer> comparator) throws InterruptedException {
+        final int subtasks = getSubtasks(threads, totalThreads);
         final long start = System.nanoTime();
-        consumer.accept(threads);
-        return System.nanoTime() - start;
+        f.apply(createInstance(threads), subtasks, data, comparator);
+        final long time = System.nanoTime() - start;
+
+        final double ops = (subtasks - 1) + (Math.ceil(data.size() / (double) threads) - 1);
+        return time / 1e6 / ops;
     }
 
     protected <T, U> void test(final BiFunction<List<Integer>, U, T> fExpected, final ConcurrentFunction<P, T, U> fActual, final List<Named<U>> cases) throws InterruptedException {
@@ -137,10 +145,6 @@ public class ScalarIPTest<P extends ScalarIP> extends BaseTest {
 
     interface ConcurrentFunction<P, T, U> {
         T apply(P instance, int threads, List<Integer> data, U value) throws InterruptedException;
-    }
-
-    interface ConcurrentIntConsumer {
-        void accept(int threads) throws InterruptedException;
     }
 
     protected List<Integer> randomList(final int size) {
