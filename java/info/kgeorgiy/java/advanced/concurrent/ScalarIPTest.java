@@ -89,21 +89,16 @@ public class ScalarIPTest<P extends ScalarIP> extends BaseTest {
         Assert.assertTrue("Too parallel", speedup < 1.2);
     }
 
-//    private double expectedTime(final int threads, final int totalThreads, final List<Integer> data) {
-//        return getSubtasks(threads, totalThreads) + data.size() / threads;
-//    }
-//
     protected double speedup(final List<Integer> data, final Comparator<Integer> comparator, final int threads) throws InterruptedException {
-//        final ConcurrentIntConsumer consumer = t -> createInstance(t).maximum(getSubtasks(t, threads), data, comparator);
-
         System.err.println("    Warm up");
+        final ConcurrentFunction<P, Integer, Comparator<Integer>> maximum = ScalarIP::maximum;
         for (int i = 0; i < 5; i++) {
-            performance(threads, threads, data, ScalarIP::maximum, comparator);
+            performance(threads, threads, data, maximum, comparator);
         }
         System.err.println("    Measurement");
 
-        final double performance1 = performance(1, threads, data, ScalarIP::maximum, comparator);
-        final double performance2 = performance(threads, threads, data, ScalarIP::maximum, comparator);
+        final double performance1 = performance(1, threads, data, maximum, comparator);
+        final double performance2 = performance(threads, threads, data, maximum, comparator);
         final double speedup = performance2 / performance1;
         System.err.format("    Performance ratio %.1f for %d threads (%.1f %.1f ms/op)%n", speedup, threads, performance1, performance2);
         return speedup;
