@@ -38,6 +38,21 @@ public class HelloClientTest extends BaseTest {
         test(20, 1, 0.5);
     }
 
+    @Test
+    public void test05_singleMultithreaded() throws IOException {
+        test(1, 10, 1);
+    }
+
+    @Test
+    public void test06_sequenceMultithreaded() throws IOException {
+        test(10, 10, 1);
+    }
+
+    @Test
+    public void test07_sequenceMultithreadedWithFails() throws IOException {
+        test(10, 10, 0.5);
+    }
+
     private void test(final int requests, final int treads, final double p) throws IOException {
         final int port = HelloClientTest.port++;
         try (DatagramSocket socket = new DatagramSocket(port)) {

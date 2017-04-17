@@ -65,6 +65,39 @@ public class HelloServerTest extends BaseTest {
         });
     }
 
+    @Test
+    public void test05_parallelClients() throws InterruptedException {
+        try (HelloServer server = createCUT()) {
+            final int port = getPort();
+            server.start(port, 1);
+            parallel(10, () -> client(port, REQUEST));
+        }
+    }
+
+    @Test
+    public void test06_dos() throws Throwable {
+        test(1, port -> socket -> parallel(100, () -> {
+            for (int i = 0; i < 10000; i++) {
+                send(port, socket, REQUEST);
+            }
+        }));
+    }
+
+    @Test
+    public void test07_noDoS() throws IOException {
+        try (HelloServer server = createCUT()) {
+            final int port = getPort();
+            server.start(port, 10);
+            parallel(10, () -> {
+                try (DatagramSocket socket = new DatagramSocket(null)) {
+                    for (int i = 0; i < 10000; i++) {
+                        checkResponse(port, socket, REQUEST + i);
+                    }
+                }
+            });
+        }
+    }
+
     private void send(final int port, final DatagramSocket socket, final String request) throws IOException {
         Util.send(socket, request, new InetSocketAddress("localhost", port));
     }
