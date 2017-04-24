@@ -58,7 +58,7 @@ public class HelloClientTest extends BaseTest {
         try (DatagramSocket socket = new DatagramSocket(port)) {
             final AtomicInteger[] expected = Util.server(PREFIX, treads, p, socket);
             final HelloClient client = createCUT();
-            client.start("localhost", port, PREFIX, requests, treads);
+            client.run("localhost", port, PREFIX, requests, treads);
             socket.close();
             for (int i = 0; i < expected.length; i++) {
                 Assert.assertEquals("Invalid number of requests on thread " + i , requests, expected[i].get());
