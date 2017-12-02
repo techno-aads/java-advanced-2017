@@ -1,4 +1,20 @@
-Тесты к курсу «Технологии Java»
+Работа с репозиторием
+====
+
+[Форкните проект](https://help.github.com/articles/fork-a-repo/), склонируйте и добавьте `upstream`:
+```
+$ git clone https://<username>@github.com/techno-aads/java-advanced-2017.git
+  Cloning into 'java-advanced-2017'...
+  remote: Counting objects: 467, done.
+  remote: Total 467 (delta 0), reused 0 (delta 0), pack-reused 467
+  Receiving objects: 100% (467/467), 1.30 MiB | 970.00 KiB/s, done.
+  Resolving deltas: 100% (131/131), done.
+$ git remote add upstream https://github.com/techno-aads/java-advanced-2017.git
+$ git fetch upstream
+```
+Затем перейдите в бранч со своей [фамилией](https://github.com/techno-aads/java-advanced-2017/branches/all), пишите в нём код и отправляйте как Pull Request в бранч solve
+
+Описание тестов к курсу «Технологии Java»
 ====
 
 [Условия домашних заданий](http://www.kgeorgiy.info/courses/java-advanced/homeworks.html)
