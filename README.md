@@ -16,7 +16,11 @@ $ git fetch upstream
 
 Дополнительная информация
 ----
-Запуск тестов для первого задания через IDEA описан в info.kgeorgiy.java.advanced.walk.Tester 
+Note: Запуск через IDEA не генерирует сертификат — это ОК
+
+Запуск тестов для первого задания через IDEA описан в [info.kgeorgiy.java.advanced.walk.Tester](java/info/kgeorgiy/java/advanced/walk/Tester.java)
+ 
+Запуск тестов для второго задания через IDEA описан в [info.kgeorgiy.java.advanced.arrayset.Tester](java/info/kgeorgiy/java/advanced/arrayset/Tester.java) 
 
 Описание тестов к курсу «Технологии Java»
 ====
