@@ -14,6 +14,10 @@ $ git fetch upstream
 ```
 Затем перейдите в бранч со своей [фамилией](https://github.com/techno-aads/java-advanced-2017/branches/all), пишите в нём код и отправляйте как Pull Request в бранч solve
 
+Дополнительная информация
+----
+Запуск тестов для первого задания через IDEA описан в info.kgeorgiy.java.advanced.walk.Tester 
+
 Описание тестов к курсу «Технологии Java»
 ====
 
