@@ -14,8 +14,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntFunction;
 
-import static info.kgeorgiy.java.advanced.hello.Util.response;
-
 /**
  * @author Georgiy Korneev (kgeorgiy@kgeorgiy.info)
  */
@@ -55,7 +53,7 @@ public class HelloServerTest extends BaseTest {
             final Set<String> responses = new HashSet<>();
             for (int i = 0; i < 10; i++) {
                 final String request = REQUEST + i;
-                responses.add(response(request));
+                responses.add(Util.response(request));
                 send(port, socket, request);
             }
             for (int i = 0; i < 10; i++) {
@@ -120,7 +118,7 @@ public class HelloServerTest extends BaseTest {
 
     private void checkResponse(final int port, final DatagramSocket socket, final String request) throws IOException {
         final String response = Util.request(request, socket, new InetSocketAddress("localhost", port));
-        Assert.assertEquals("Invalid response", response(request), response);
+        Assert.assertEquals("Invalid response", Util.response(request), response);
     }
 
     private int getPort() {
