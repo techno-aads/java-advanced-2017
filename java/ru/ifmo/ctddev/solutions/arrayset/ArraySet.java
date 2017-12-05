@@ -5,6 +5,8 @@ import com.sun.istack.internal.Nullable;
 import java.util.*;
 
 public class ArraySet<E> implements SortedSet<E> {
+    ArraySet<E> EMPTY = new ArraySet<>();
+
     /**
      * Point to the first element of set in <code>elements</code>
      */
@@ -132,10 +134,10 @@ public class ArraySet<E> implements SortedSet<E> {
     @Override
     public SortedSet<E> subSet(E fromElement, E toElement) {
         if (isEmpty()) {
-            return new ArraySet<>();
+            return EMPTY;
         }
-        Integer start = indexOfFirstEqualOrGreater(fromElement);
-        Integer end = indexOfFirstEqualOrGreater(toElement);
+        int start = indexOfFirstEqualOrGreater(fromElement);
+        int end = indexOfFirstEqualOrGreater(toElement);
 
         if (start > end) {
             throw new IllegalArgumentException("From elements is greater than to element");
@@ -147,7 +149,7 @@ public class ArraySet<E> implements SortedSet<E> {
     @Override
     public ArraySet<E> headSet(E toElement) {
         if (isEmpty()) {
-            return new ArraySet<>();
+            return EMPTY;
         }
         int index = indexOfFirstEqualOrGreater(toElement);
         return createSubset(first, index);
@@ -156,7 +158,7 @@ public class ArraySet<E> implements SortedSet<E> {
     @Override
     public ArraySet<E> tailSet(E fromElement) {
         if (isEmpty()) {
-            return new ArraySet<>();
+            return EMPTY;
         }
         int index = indexOfFirstEqualOrGreater(fromElement);
 

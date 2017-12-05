@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 import static info.kgeorgiy.java.advanced.crawler.URLUtils.getHost;
 
 public class WebCrawler implements Crawler {
-    private static final Result EMPTY_RESULT = new Result(new ArrayList<>(), new HashMap<>());
+    private static final Result EMPTY_RESULT = new Result(Collections.emptyList(), Collections.emptyMap());
 
     private static final int EXTRACTORS_LIMIT = 140;
     private static final int DOWNLOADERS_LIMIT = 140;

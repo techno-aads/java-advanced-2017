@@ -31,7 +31,7 @@ public class ParallelMapperImpl implements ParallelMapper {
 
     public ParallelMapperImpl(int workersNum) {
         this.workersNum = workersNum;
-        subtaskExecutor = Executors.newWorkStealingPool(workersNum > 2 ? workersNum - 1 : 1);
+        subtaskExecutor = Executors.newWorkStealingPool(workersNum);
     }
 
     @Override
