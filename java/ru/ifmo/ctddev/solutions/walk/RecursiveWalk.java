@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 public class RecursiveWalk extends HashWalker {
@@ -21,17 +20,13 @@ public class RecursiveWalk extends HashWalker {
     private final FileVisitor<Path> visitor = new SimpleFileVisitor<Path>() {
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-            if (attrs.isDirectory()) {
-                return FileVisitResult.CONTINUE;
-            }
-
             int hash = 0;
             try {
                 hash = calculateHashForFile(file.toString());
             } catch (Exception ignore) {} // if thrown just write a zero hash
             writeResultLine(file.toString(), hash);
 
-            return FileVisitResult.SKIP_SUBTREE;
+            return FileVisitResult.CONTINUE;
         }
 
         @Override
@@ -83,8 +78,6 @@ public class RecursiveWalk extends HashWalker {
     }
 
     private void writeResultLine(String pathTofile, int hash) {
-        Objects.requireNonNull(result);
-        Objects.requireNonNull(pathTofile);
         result.append(String.format("%08x %s\n", hash, pathTofile));
     }
 
