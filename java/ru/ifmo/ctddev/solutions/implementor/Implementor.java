@@ -54,7 +54,8 @@ public class Implementor implements Impler {
      * @throws ImplerException if class cannot be implemented by some reasons
      */
     public void implement(Class<?> aClass, Path path) throws ImplerException {
-        if (Modifier.isFinal(aClass.getModifiers()) || aClass == Enum.class) { // todo: enum cannot be implemented
+        int modifiers = aClass.getModifiers();
+        if (Modifier.isPrivate(modifiers) || Modifier.isFinal(modifiers) || aClass.isEnum() || aClass == Enum.class) {
             throw new ImplerException("Class is final or Enum");
         }
 
@@ -84,8 +85,6 @@ public class Implementor implements Impler {
      * @throws ImplerException if class cannot be implemented by some reasons
      */
     private void processBody(Class<?> aClass, StringBuilder result) throws ImplerException {
-        Objects.requireNonNull(result);
-
         result.append(PUBLIC + CLASS).append(aClass.getSimpleName()).append(IMPL_SUFFIX)
                 .append(aClass.isInterface() ? IMPLEMENTS : EXTENDS).append(aClass.getCanonicalName())
                 .append(OPEN_BRACE + NEXT_LINE);
@@ -114,8 +113,6 @@ public class Implementor implements Impler {
      * @throws ImplerException if there are no constructors that can be implemented
      */
     private void processConstructors(Class<?> aClass, StringBuilder result) throws ImplerException {
-        Objects.requireNonNull(result);
-
         int publicConstructors = 0;
 
         for (Constructor<?> constructor : aClass.getDeclaredConstructors()) {
@@ -234,8 +231,6 @@ public class Implementor implements Impler {
      *                                    will be placed
      */
     private void processMethod(Method method, Class<?> aClass, StringBuilder result) {
-        Objects.requireNonNull(result);
-
         if (!Modifier.isAbstract(method.getModifiers())) {
             return;
         }
@@ -292,15 +287,16 @@ public class Implementor implements Impler {
     }
 
     private void processPackage(Class<?> aClass, StringBuilder result) {
-        Objects.requireNonNull(result).append("package ")
+        if (aClass.getPackage() == null) {
+            return;
+        }
+        result.append("package ")
                 .append(aClass.getPackage().getName())
                 .append(SEMICOLON)
                 .append(NEXT_LINE);
     }
 
     private void writeResultFile(Class<?> aClass, Path path, StringBuilder result) throws IOException {
-        Objects.requireNonNull(result);
-
         String destDirName = path + File.separator + aClass.getPackage().getName().replace(".", File.separator);
 
         Files.createDirectories(Paths.get(destDirName));

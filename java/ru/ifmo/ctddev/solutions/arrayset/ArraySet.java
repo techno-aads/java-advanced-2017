@@ -5,7 +5,8 @@ import com.sun.istack.internal.Nullable;
 import java.util.*;
 
 public class ArraySet<E> implements SortedSet<E> {
-    ArraySet<E> EMPTY = new ArraySet<>();
+
+    private static final ArraySet EMPTY = new ArraySet<>();
 
     /**
      * Point to the first element of set in <code>elements</code>
@@ -73,7 +74,8 @@ public class ArraySet<E> implements SortedSet<E> {
     }
 
     public Iterator<E> iterator() {
-        return Arrays.asList(elements).subList(first, last).iterator();
+        return Objects.isNull(elements) ?
+                Collections.emptyIterator() : Arrays.asList(elements).subList(first, last).iterator();
     }
 
     public Object[] toArray() {

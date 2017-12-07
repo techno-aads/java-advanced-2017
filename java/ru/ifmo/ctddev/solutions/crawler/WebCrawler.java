@@ -61,11 +61,8 @@ public class WebCrawler implements Crawler {
 
         extractDocument(document, pageUrl);
 
-        ArrayList<String> downloaded = new ArrayList<>();
-        HashMap<String, IOException> errors = new HashMap<>();
-
-        downloaded.addAll(takenPages.get(pageUrl).getDownloaded());
-        errors.putAll(takenPages.get(pageUrl).getErrors());
+        ArrayList<String> downloaded = new ArrayList<>(takenPages.get(pageUrl).getDownloaded());
+        HashMap<String, IOException> errors = new HashMap<>(takenPages.get(pageUrl).getErrors());
 
         children.getOrDefault(pageUrl, new HashSet<>()).stream()
                 .map(url -> (Callable<Result>) () -> download(url, i - 1))
@@ -97,11 +94,10 @@ public class WebCrawler implements Crawler {
                         hostCounters.get(host).acquire();
                         try {
                             document = downloader.download(pageUrl);
-                            takenPages.put(pageUrl, new Result(Collections.singletonList(pageUrl), new HashMap<>()));
+                            takenPages.put(pageUrl, new Result(Collections.singletonList(pageUrl), Collections.emptyMap()));
                         } catch (IOException e) {
-                            HashMap<String, IOException> errors = new HashMap<>();
-                            errors.put(pageUrl, e);
-                            takenPages.put(pageUrl, new Result(new ArrayList<>(), errors));
+                            Map<String, IOException> errors = Collections.singletonMap(pageUrl, e);
+                            takenPages.put(pageUrl, new Result(Collections.emptyList(), errors));
                         }
                     } catch (InterruptedException e) {
                         throw new IllegalStateException("Can't acquire the semaphore");
