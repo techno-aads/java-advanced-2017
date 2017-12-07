@@ -24,62 +24,57 @@ public class RecursiveWalk {
     }
 
     private static void doWalk(String input, String output) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(input)));
         Queue<String> queue = new LinkedList<>();
-
-        String path;
-        while ((path = reader.readLine()) != null) {
-            queue.add(path);
-        }
-        reader.close();
-
-        PrintWriter writer = new PrintWriter(output);
-        while (!queue.isEmpty()) {
-            String filename = queue.poll();
-            File p = new File(filename);
-
-            if (p.isDirectory()) {
-                File[] listFiles = p.listFiles();
-                if (listFiles != null) {
-                    queue.addAll(Arrays.stream(listFiles).map(File::getPath).collect(Collectors.toList()));
-                } else {
-                    printZeroHash(writer, p.getPath());
-                }
-            } else {
-                printHash(writer, filename);
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(input)))) {
+            String path;
+            while ((path = reader.readLine()) != null) {
+                queue.add(path);
             }
         }
 
-        writer.close();
+        try (PrintWriter writer = new PrintWriter(output)) {
+            while (!queue.isEmpty()) {
+                String filename = queue.poll();
+                File p = new File(filename);
+
+                if (p.isDirectory()) {
+                    File[] listFiles = p.listFiles();
+                    if (listFiles != null) {
+                        queue.addAll(Arrays.stream(listFiles).map(File::getPath).collect(Collectors.toList()));
+                    } else {
+                        printHash(writer, p.getPath(), 0);
+                    }
+                } else {
+                    printHash(writer, filename);
+                }
+            }
+        }
     }
 
     private static void printHash(PrintWriter writer, String path) {
-        int hash;
+        int hash = 0;
         try {
             hash = calc(path);
-        } catch (IOException e) {
-            hash = 0;
+        } catch (IOException ignored) {
         }
+        printHash(writer, path, hash);
+    }
+
+    private static void printHash(PrintWriter writer, String path, int hash) {
         writer.print(String.format("%08x", hash));
         writer.print(" ");
         writer.println(path);
     }
 
-    private static void printZeroHash(PrintWriter writer, String path) {
-        writer.print(String.format("%08x", 0));
-        writer.print(" ");
-        writer.println(path);
-    }
-
     private static int calc(String path) throws IOException {
-        FileInputStream fis = new FileInputStream(path);
-        int hval = 0x811c9dc5;
 
-        int b;
-        while ((b = fis.read()) != -1) {
-            hval = (hval * FNV_32_PRIME) ^ (b & 0xff);
+        int hval = 0x811c9dc5;
+        try (InputStream fis = new BufferedInputStream(new FileInputStream(path))) {
+            int b;
+            while ((b = fis.read()) != -1) {
+                hval = (hval * FNV_32_PRIME) ^ (b & 0xff);
+            }
         }
-        fis.close();
 
         return hval;
     }
