@@ -70,7 +70,7 @@ public class WebCrawler implements Crawler {
         @SuppressWarnings("unused")
         private Semaphore retreive(String url, Semaphore semaphore) {
             return semaphore == null
-                ? new Semaphore(WebCrawler.this.perHost)
+                ? new Semaphore(perHost)
                 : semaphore;
         }
 
@@ -88,24 +88,24 @@ public class WebCrawler implements Crawler {
                 return null;
             }
 
-            Semaphore semaphore = WebCrawler.this.hosts.compute(host, this::retreive);
+            Semaphore semaphore = hosts.compute(host, this::retreive);
             semaphore.acquireUninterruptibly();
-            WebCrawler.this.maxDownloads.acquireUninterruptibly();
+            maxDownloads.acquireUninterruptibly();
             try {
-                document = WebCrawler.this.downloader.download(s);
+                document = downloader.download(s);
             }
             catch (IOException e) {
                 cache.errors.putIfAbsent(s, e);
             }
             finally {
-                WebCrawler.this.maxDownloads.release();
+                maxDownloads.release();
                 semaphore.release();
                 if (document == null) {
                     return null;
                 }
             }
 
-            WebCrawler.this.maxExtractors.acquireUninterruptibly();
+            maxExtractors.acquireUninterruptibly();
             try {
                 result = document.extractLinks();
             }
@@ -113,7 +113,7 @@ public class WebCrawler implements Crawler {
                 cache.errors.putIfAbsent(s, e);
             }
             finally {
-                WebCrawler.this.maxExtractors.release();
+                maxExtractors.release();
             }
             return result;
         }
@@ -132,18 +132,18 @@ public class WebCrawler implements Crawler {
 
     @Override
     public Result download(String s, int i) {
-        List<String> allUrls = new ArrayList<>(2 << i);
+        List<String> allUrls = new ArrayList<>(i << 1);
         List<String> currentUrls = Collections.singletonList(s);
         Cache cache = new Cache();
 
         for (int depth = 0; depth < i; depth++) {
             if (currentUrls.size() == 0)
                 break;
-
             allUrls.addAll(currentUrls);
             List<Callable<List<String>>> downloads = currentUrls.stream()
                     .map(v -> new DownloadTask(v, cache) )
                     .collect(Collectors.toCollection(LinkedList::new));
+
             try {
                 currentUrls = downloadExecutor.invokeAll(downloads).stream()
                         .filter(Objects::nonNull)
@@ -175,11 +175,9 @@ public class WebCrawler implements Crawler {
     public static void main(String... args) throws Exception {
         int depth = 1, downloadors = Integer.MAX_VALUE,
             extractors = Integer.MAX_VALUE, perHost = Integer.MAX_VALUE;
-
         if (args.length < 1) {
             throw new RuntimeException("Url is missing in command-line arguments.");
         }
-
         String url = args[0];
         for (int i = 1; i < args.length && i < 5; i++) {
             int n = Integer.valueOf(args[i]);
@@ -190,7 +188,6 @@ public class WebCrawler implements Crawler {
                 case 4: perHost     = n; break;
             }
         }
-
         Result result;
         try (Crawler crawler = new WebCrawler(new CachingDownloader(), downloadors, extractors, perHost)) {
             result = crawler.download(url, depth);
