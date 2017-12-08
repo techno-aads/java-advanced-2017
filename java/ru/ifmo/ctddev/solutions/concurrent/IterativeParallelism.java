@@ -11,7 +11,7 @@ public class IterativeParallelism implements ListIP {
 
     public <T> T maximum(int threadLimit, List<? extends T> list, Comparator<? super T> comparator)
             throws InterruptedException {
-        Function<List<? extends T>, T> f = (l -> Collections.max(l, comparator));
+        Function<List<? extends T>, T> f = l -> Collections.max(l, comparator);
 
         return Collections.max(invokeForThreadsResult(list, threadLimit, f), comparator);
     }
