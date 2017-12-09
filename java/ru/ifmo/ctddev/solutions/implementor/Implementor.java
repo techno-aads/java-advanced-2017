@@ -24,6 +24,15 @@ import static java.nio.file.Files.getLastModifiedTime;
 import static java.nio.file.Files.newInputStream;
 
 public class Implementor implements JarImpler {
+
+    /**
+     * Default method comparator
+     */
+    private static Comparator<Method> DEFAULT_METHOD_COMPARATOR = Comparator
+            .comparing(m -> m.getName() + Arrays.stream(m.getParameterTypes())
+                    .map(Class::getSimpleName)
+                    .collect(Collectors.joining("")));
+
     /**
      * type token to create implementation for.
      */
@@ -66,8 +75,7 @@ public class Implementor implements JarImpler {
                 .filter(c -> !Modifier.isPrivate(c.getModifiers()))
                 .collect(Collectors.toList());
 
-
-        if (constructorsToImplement.size() == 0 && !token.isInterface()) {
+        if (constructorsToImplement.isEmpty() && !token.isInterface()) {
             throw new ImplerException("No available default constructors!");
         }
 
@@ -99,15 +107,9 @@ public class Implementor implements JarImpler {
      * @return {@link Set} of methods to implement
      */
     private Set<Method> getMethodsToImplement() {
-        Set<Method> methods = new TreeSet<>(Comparator
-                .comparing(m -> m.getName() + Arrays.stream(m.getParameterTypes())
-                        .map(Class::getSimpleName)
-                        .collect(Collectors.joining(""))));
+        Set<Method> methods = new TreeSet<>(DEFAULT_METHOD_COMPARATOR);
 
-        Set<Method> implementedMethods = new TreeSet<>(Comparator
-                .comparing(m -> m.getName() + Arrays.stream(m.getParameterTypes())
-                        .map(Class::getSimpleName)
-                        .collect(Collectors.joining(""))));
+        Set<Method> implementedMethods = new TreeSet<>(DEFAULT_METHOD_COMPARATOR);
 
         appendOwnMethods(methods, implementedMethods);
         appendInterfaces(methods);
@@ -125,13 +127,7 @@ public class Implementor implements JarImpler {
      * @param implementedMethods {@link Set} of methods which are already implemented
      */
     private void appendOwnMethods(Set<Method> methods, Set<Method> implementedMethods) {
-        for (Method method : token.getDeclaredMethods()) {
-            if (Modifier.isAbstract(method.getModifiers())) {
-                methods.add(method);
-            } else {
-                implementedMethods.add(method);
-            }
-        }
+        runAndDistributeMethods(token.getDeclaredMethods(), methods, implementedMethods);
     }
 
     /**
@@ -144,15 +140,27 @@ public class Implementor implements JarImpler {
     private void appendSuperclassesMethods(Set<Method> methods, Set<Method> implementedMethods) {
         Class superClass = token.getSuperclass();
         while (superClass != null) {
-            Method[] superMethodsArr = superClass.getDeclaredMethods();
-            for (Method method : superMethodsArr) {
-                if (Modifier.isAbstract(method.getModifiers())) {
-                    methods.add(method);
-                } else {
-                    implementedMethods.add(method);
-                }
-            }
+            runAndDistributeMethods(superClass.getDeclaredMethods(), methods, implementedMethods);
             superClass = superClass.getSuperclass();
+        }
+    }
+
+    /**
+     * Validates list of not distributed methods and add every of it either in methods list, or in implemented
+     * methods list. If method is not abstract, there is no need to add implementation for it, so add it in implemented
+     * metods. Otherwise we have to implement declared method.
+     *
+     * @param methodList         Array of unknown {@link Method}
+     * @param methods            list of methods to be implemented
+     * @param implementedMethods list of already implemented methods
+     */
+    private void runAndDistributeMethods(Method[] methodList, Set<Method> methods, Set<Method> implementedMethods) {
+        for (Method m : methodList) {
+            if (Modifier.isAbstract(m.getModifiers())) {
+                methods.add(m);
+            } else {
+                implementedMethods.add(m);
+            }
         }
     }
 
@@ -167,6 +175,7 @@ public class Implementor implements JarImpler {
         while (!interfaces.isEmpty()) {
             Class superInterface = interfaces.poll();
             interfaces.addAll(Arrays.asList(superInterface.getInterfaces()));
+            // interface doesn't contain any implemented method, so add them all
             methods.addAll(Arrays.stream(superInterface.getDeclaredMethods())
                     .filter(m -> Modifier.isAbstract(m.getModifiers()))
                     .collect(Collectors.toList()));
