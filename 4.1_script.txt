@@ -1,0 +1,10 @@
+
+mkdir ./build
+
+javac -d ./build java/info/kgeorgiy/java/advanced/implementor/Impler.java java/info/kgeorgiy/java/advanced/implementor/JarImpler.java java/info/kgeorgiy/java/advanced/implementor/ImplerException.java java/ru/ifmo/ctddev/solutions/implementor/Implementor.java
+
+cd build
+
+jar cfm Implementor.jar manifest.txt ./ru/ifmo/ctddev/solutions/implementor/*.class
+
+java -jar Implementor.jar asdf asdf
