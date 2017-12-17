@@ -1,4 +1,4 @@
-package ru.ifmo.ctddev.razzhivin.hw67;
+package ru.ifmo.ctddev.solutions.mapper;
 
 import java.util.LinkedList;
 import java.util.function.Function;

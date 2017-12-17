@@ -1,1 +1,1 @@
-java -Dfile.encoding=UTF-8 -classpath lib/*;artifacts/*; info.kgeorgiy.java.advanced.mapper.Tester list ru.ifmo.ctddev.razzhivin.hw67.ParallelMapperImpl,ru.ifmo.ctddev.razzhivin.hw67.IterativeParallelism
+java -Dfile.encoding=UTF-8 -classpath lib/*;artifacts/*; info.kgeorgiy.java.advanced.mapper.Tester list ru.ifmo.ctddev.solutions.mapper.ParallelMapperImpl,ru.ifmo.ctddev.solutions.concurrent.IterativeParallelism
