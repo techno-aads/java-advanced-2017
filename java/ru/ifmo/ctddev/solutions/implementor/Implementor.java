@@ -4,10 +4,7 @@ import info.kgeorgiy.java.advanced.implementor.ImplerException;
 import info.kgeorgiy.java.advanced.implementor.JarImpler;
 
 import javax.tools.ToolProvider;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -352,9 +349,9 @@ public class Implementor implements JarImpler {
         List<String> javaPathSplitted = Arrays.asList(jarFile.toString().split("\\."));
         javaPathSplitted = javaPathSplitted.subList(0, javaPathSplitted.size() - 1);
 
-        String generatedClassesRootPath = String.join("\\", javaPathSplitted);
+        String generatedClassesRootPath = String.join(File.separator, javaPathSplitted);
         Path javaPath = Paths.get(generatedClassesRootPath + "Impl.java");
-        Path jarPath = Paths.get(String.join("\\", javaPathSplitted) + "Impl.class");
+        Path jarPath = Paths.get(String.join(File.separator, javaPathSplitted) + "Impl.class");
 
         // compile file to class
         ToolProvider.getSystemJavaCompiler().run(null, null, null, javaPath.toString());
@@ -387,7 +384,7 @@ public class Implementor implements JarImpler {
             addJarEntryToJarStream(relativePath, pathToGeneratedClass, jarOutputStream);
 
             if (!iter.hasNext()) {
-                try (InputStream in = newInputStream(Paths.get(rootName + "/" + relativePath))) {
+                try (InputStream in = newInputStream(pathToGeneratedClass)) {
                     byte[] bytes = new byte[4096];
                     int count = in.read(bytes);
                     while (count != -1) {
