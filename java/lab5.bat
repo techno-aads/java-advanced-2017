@@ -1,0 +1,1 @@
+javadoc -d ./doc ru/ifmo/ctddev/solutions/implementor/Implementor.java -private
