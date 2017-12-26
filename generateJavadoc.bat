@@ -1,0 +1,1 @@
+javadoc -classpath lib/*;artifacts/*; -private -d javadoc -sourcepath ./java -subpackages ru:info
