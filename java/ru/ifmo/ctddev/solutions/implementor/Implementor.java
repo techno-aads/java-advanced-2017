@@ -21,23 +21,34 @@ import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 
+/**
+ * Class for generating a new class code that implements the specified interface or inherited from the class
+ */
 public class Implementor implements JarImpler {
+
+    /**
+     * Contains a unique list of strings. The string represents the name of the method and its arguments.
+     */
+    private List<String> allMethods;
+
     /**
      * Main method to run from console
-     * @param args program arguments
+     * @param args - args[0] - type token to create implementation for.
+     *               args[1] - target <tt>.jar</tt> file.
+     *
      */
     public static void main(String[] args) {
         if (args.length < 2) {
-            System.out.println("Usage: java -jar Implementor.jar [token] [path to jar]");
+            System.out.println("Usage: java -jar Implementor.jar [token] [path to jar with name jar]");
             return;
         }
 
         try {
             new Implementor().implementJar(Class.forName(args[0]), Paths.get(args[1]));
         } catch (ClassNotFoundException ex) {
-            System.out.println(ex.getMessage());
+            System.out.println("Class not found exception: " + ex.getMessage());
         } catch (ImplerException ex) {
-            System.out.println(ex.getMessage());
+            System.out.println("Impler exception: " + ex.getMessage());
         }
     }
 
@@ -50,8 +61,17 @@ public class Implementor implements JarImpler {
      */
     @Override
     public void implementJar(Class<?> token, Path jarFile) throws ImplerException {
+        if (!jarFile.toString().toLowerCase().endsWith(".jar")){
+            throw new ImplerException("Incorrect name for jarFile");
+        }
 
-        Path root = Paths.get(jarFile.toString().substring(0, jarFile.toString().lastIndexOf(File.separator)));
+        Path root;
+        if (jarFile.toString().lastIndexOf(File.separator) != -1) {
+            root = Paths.get(jarFile.toString().substring(0, jarFile.toString().lastIndexOf(File.separator)));
+        }
+        else{
+            root = Paths.get("").toAbsolutePath();
+        }
 
         implement(token, root);
 
@@ -102,6 +122,7 @@ public class Implementor implements JarImpler {
             throw new ImplerException("Class can not to be final or private");
         }
 
+        allMethods = new ArrayList<>();
         String canonicalName = token.getCanonicalName();
 
         boolean isInterface = token.isInterface();
@@ -144,7 +165,7 @@ public class Implementor implements JarImpler {
         String methodDeclare;
         Class<?> methodReturnType;
         int iModifiers;
-        List<String> allMethods = new ArrayList<>();
+        //List<String> allMethods = new ArrayList<>();
 
         if (token.isInterface()) {
             for (Method method : token.getMethods()) {
@@ -210,7 +231,7 @@ public class Implementor implements JarImpler {
         int iModifiers;
         String constructorArgs;
         String constructorDeclare;
-        List<String> constructors = new ArrayList<>();
+        //List<String> constructors = new ArrayList<>();
 
         for (Constructor constructor : token.getDeclaredConstructors()) {
             iModifiers = constructor.getModifiers();
@@ -218,8 +239,8 @@ public class Implementor implements JarImpler {
             constructorDeclare = name + " " + constructorArgs;
 
 
-            if (!Modifier.isFinal(iModifiers) && !Modifier.isPrivate(iModifiers) && !constructors.contains(constructorDeclare)) {
-                constructors.add(constructorDeclare);
+            if (!Modifier.isFinal(iModifiers) && !Modifier.isPrivate(iModifiers) && !allMethods.contains(constructorDeclare)) {
+                allMethods.add(constructorDeclare);
                 constructorsCode.append(Modifier.toString(iModifiers & ~Modifier.ABSTRACT & ~Modifier.TRANSIENT));
                 constructorsCode.append(" ");
                 constructorsCode.append(constructorDeclare);
