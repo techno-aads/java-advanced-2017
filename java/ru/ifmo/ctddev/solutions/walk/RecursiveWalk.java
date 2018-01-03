@@ -1,16 +1,13 @@
 package ru.ifmo.ctddev.solutions.walk;
 
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.Paths;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 
-public class RecursiveWalk {
-
-    public static final int ERROR_HASH = 0;
+public class RecursiveWalk extends HashWalker {
 
     public static void main(String[] args) {
         if (args == null || args.length != 2 || args[0] == null || args[1] == null) {
@@ -22,8 +19,29 @@ public class RecursiveWalk {
              BufferedWriter writer = Files.newBufferedWriter(Paths.get(args[1]), StandardCharsets.UTF_8)) {
             try {
                 String line;
+                SimpleFileVisitor<Path> visitor = new SimpleFileVisitor<Path>() {
+
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attr) throws IOException,
+                            SecurityException {
+                        writer.write(String.format("%s %s\n", calculateHash(file), file.toString()));
+                        return FileVisitResult.CONTINUE;
+                    }
+
+                    @Override
+                    public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+                        writer.write(String.format("%s\n", getIncorrectFileHash(file.toString())));
+                        return FileVisitResult.CONTINUE;
+                    }
+                };
+
                 while ((line = reader.readLine()) != null) {
-                    walk(new File(line), writer);
+                    try {
+                        Path path = Paths.get(line);
+                        Files.walkFileTree(path, visitor);
+                    } catch (InvalidPathException | SecurityException e) {
+                        writer.write(String.format("%s\n", getIncorrectFileHash(line)));
+                    }
                 }
             } catch (IOException e) {
                 System.out.println("Can't read line from Input file");
@@ -37,67 +55,4 @@ public class RecursiveWalk {
             System.out.println("InvalidPathException was catched ");
         }
     }
-
-    private static void walk(File file, BufferedWriter outputWriter) {
-        if (file.isDirectory()) {
-            File[] items = file.listFiles();
-            if (items == null) {
-                try {
-                    outputWriter.write(String.format("%08x %s", ERROR_HASH, file.getPath()) + "\n");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                for (File item : items) {
-                    walk(item, outputWriter);
-                }
-            }
-        } else {
-            try {
-                outputWriter.write(String.format("%08x %s", fastFNV(file), file.getPath()) + "\n");
-            } catch (IOException e) {
-                System.out.println("Can't write line to Output file");
-            }
-        }
-    }
-
-    private static int fastFNV(File file) {
-        int h = 0x811c9dc5;
-        try {
-            FileInputStream fin = new FileInputStream(file);
-            FileChannel channel = fin.getChannel();
-            ByteBuffer buf = ByteBuffer.allocate(1024 * 8);
-            try {
-                int c;
-                while (channel.read(buf) != -1) {
-                    buf.flip();
-                    while (buf.hasRemaining()) {
-                        c = buf.get() & 0xff;
-                        h = (h * 0x01000193) ^ c;
-                    }
-                    buf.clear();
-                }
-            } catch (IOException e) {
-                System.out.println("Can't read one more byte from " + file.getPath());
-                try {
-                    channel.close();
-                } catch (IOException e1) {
-                    e.printStackTrace();
-                }
-                try {
-                    fin.close();
-                } catch (IOException e2) {
-                    System.out.println("Can't close " + file.getPath());
-                }
-                return ERROR_HASH;
-            }
-        } catch (SecurityException e) {
-            return ERROR_HASH;
-        } catch (FileNotFoundException e) {
-            System.out.println("File not found: " + file.getPath());
-            return ERROR_HASH;
-        }
-        return h;
-    }
-
 }
