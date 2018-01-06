@@ -211,9 +211,16 @@ public class Implementor implements Impler, JarImpler {
         }
 
         result.append("public class ").append(className).append(" ");
-        result.append(clazz.isInterface() ? "implements" : "extends");
+        Method[] methods;
+        if (clazz.isInterface()) {
+            result.append("implements");
+            methods = clazz.getMethods();
+        } else {
+            result.append("extends");
+            methods = clazz.getDeclaredMethods();
+        }
         result.append(" ").append(clazz.getName()).append(" {\n");
-        for (Method method : clazz.getDeclaredMethods()) {
+        for (Method method : methods) {
             result.append(printMethodsRealisation(method));
         }
         result.append("}\n");
