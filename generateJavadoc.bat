@@ -1,1 +1,1 @@
-javadoc -classpath lib/*;artifacts/*; -private -d javadoc -sourcepath ./java -subpackages ru:info
+javadoc -private -link https://docs.oracle.com/javase/8/docs/api/ -d javadoc -sourcepath ./java -subpackages ru.ifmo.ctddev.solutions.implementor
