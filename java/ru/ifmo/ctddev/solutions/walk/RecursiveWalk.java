@@ -31,7 +31,13 @@ public class RecursiveWalk {
     private static void recursiveWalk(String path) {
         try {
             Files.walk(Paths.get(path))
-                    .filter(Files::isRegularFile)
+                    .filter(file -> {
+                        try {
+                            return Files.isRegularFile(file);
+                        } catch (SecurityException e) {
+                            return false;
+                        }
+                    })
                     .forEach(RecursiveWalk::calculateFNVHash);
         } catch (Exception e) {
             outputContent.append(HASH_STUB).append(" ").append(path).append("\n");
@@ -51,7 +57,7 @@ public class RecursiveWalk {
                 buffer.clear();
             }
             outputContent.append(String.format("%08X", hash).toLowerCase()).append(" ").append(path).append("\n");
-        } catch (IOException e) {
+        } catch (Exception e) {
             outputContent.append(HASH_STUB).append(" ").append(path).append("\n");
             System.out.println(e.getMessage());
         }
