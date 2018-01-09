@@ -91,7 +91,7 @@ public class Implementor implements JarImpler {
 
         javaCompiler.run(null, null, null, args.toArray(new String[args.size()]));
 
-        String pathToJar = root.toString() + File.separator + packagePath + File.separator + token.getSimpleName() + "Impl.class";
+        String pathToJar = packagePath + File.separator + token.getSimpleName() + "Impl.class";
 
         try (JarOutputStream jarOutputStream = new JarOutputStream(Files.newOutputStream(jarFile))) {
 
