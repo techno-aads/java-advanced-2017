@@ -18,10 +18,6 @@ public class IterativeParallelism implements ListIP {
         this.parallelMapper = parallelMapper;
     }
 
-    private<T> T  max (List<? extends T> x){
-        return null;
-    }
-
     @Override
     public <T> T maximum(int threads, List<? extends T> values, Comparator<? super T> comparator) throws InterruptedException {
         Function<List<? extends T>, T> max = l -> l.stream().max(comparator).orElse(null);

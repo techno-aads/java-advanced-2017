@@ -19,7 +19,7 @@ public class HelloClientTest extends BaseTest {
     public static final String PREFIX = HelloClientTest.class.getName();
 
     @Test
-    public void test01_singleRequest() throws IOException {
+     public void test01_singleRequest() throws IOException {
         test(1, 1, 1);
     }
 

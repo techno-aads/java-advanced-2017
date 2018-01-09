@@ -1,182 +1,156 @@
 package ru.ifmo.ctddev.solutions.crawler;
 
-import info.kgeorgiy.java.advanced.crawler.CachingDownloader;
-import info.kgeorgiy.java.advanced.crawler.Crawler;
-import info.kgeorgiy.java.advanced.crawler.Document;
-import info.kgeorgiy.java.advanced.crawler.Downloader;
-import info.kgeorgiy.java.advanced.crawler.Result;
-import info.kgeorgiy.java.advanced.crawler.URLUtils;
+import info.kgeorgiy.java.advanced.crawler.*;
+import info.kgeorgiy.java.advanced.mapper.ParallelMapper;
+import ru.ifmo.ctddev.solutions.mapper.ParallelMapperImpl;
 
+import javax.print.Doc;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.Semaphore;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class WebCrawler implements Crawler {
-    private final Downloader downloader;
-    private final ExecutorService downloadExecutor, extractExecutor;
-    private final ConcurrentHashMap<String, Semaphore> hosts = new ConcurrentHashMap<>();
-    private final int perHost;
+    private Downloader downloader;
+    private int downloaders;
+    private int extractors;
+    private int perHost;
 
-    @SuppressWarnings("WeakerAccess")
+    protected class DownloadResult {
+        protected List<String> extractLinks;
+        protected String url;
+        protected IOException exception;
+    }
+
+    private CopyOnWriteArrayList<String> downloaded;
+    private ConcurrentHashMap<String, IOException> errors;
+
+
+    ParallelMapper downloadMapper;
+    ParallelMapper extractMapper;
+
+
     public WebCrawler(Downloader downloader, int downloaders, int extractors, int perHost) {
-        this.downloader       = downloader;
-        this.downloadExecutor = Executors.newFixedThreadPool(downloaders);
-        this.extractExecutor  = Executors.newFixedThreadPool(extractors);
-        this.perHost          = perHost;
-    }
+        this.downloader = downloader;
+        this.downloaders = downloaders;
+        this.extractors = extractors;
+        this.perHost = perHost;
 
-    protected class Cache {
-        protected ConcurrentHashMap<String, String> urls = new ConcurrentHashMap<>();
-        protected ConcurrentHashMap<String, IOException> errors = new ConcurrentHashMap<>();
-        protected ConcurrentLinkedQueue<Future<?>> queue = new ConcurrentLinkedQueue<>();
-        protected int maxDepth;
+        errors = new ConcurrentHashMap<>();
+        downloaded = new CopyOnWriteArrayList<>();
 
-        Cache(int depth) { this.maxDepth = depth; }
-    }
-
-    protected class ExtractTask implements Runnable {
-        Cache cache;
-        int depth;
-        Document document;
-        String url;
-
-        ExtractTask(Cache cache, int depth, String url, Document document) {
-            this.document = document;
-            this.cache    = cache;
-            this.depth    = depth;
-            this.url      = url;
-        }
-
-        @Override
-        public void run() {
-            try {
-                List<String> result = document.extractLinks();
-                ++depth;
-
-                if (depth >= cache.maxDepth)
-                    return;
-
-                for (String s: result) {
-                    if (cache.urls.put(s,s) == null)
-                        cache.queue.add(downloadExecutor.submit(new DownloadTask(cache, depth, s)));
-                }
-            }
-            catch (IOException e) {
-                cache.errors.putIfAbsent(url, e);
-            }
-        }
-    }
-
-    protected class DownloadTask implements Runnable {
-        private String url;
-        private Cache cache;
-        private int depth;
-
-        DownloadTask(Cache cache, int depth, String url) {
-            this.url   = url;
-            this.cache = cache;
-            this.depth = depth;
-        }
-
-        @Override
-        public void run() {
-            Document document = null;
-            String host;
-
-            try {
-                host = URLUtils.getHost(url);
-            }
-            catch (MalformedURLException e) {
-                e.printStackTrace();
-                return;
-            }
-
-            Semaphore semaphore = hosts.compute(host, this::retreive);
-            semaphore.acquireUninterruptibly();
-            try {
-                document = downloader.download(url);
-            }
-            catch (IOException e) {
-                cache.errors.putIfAbsent(url, e);
-            }
-            finally {
-                semaphore.release();
-            }
-            if (Objects.nonNull(document))
-                cache.queue.add(extractExecutor.submit(new ExtractTask(cache, depth, url, document)));
-        }
-
-        @SuppressWarnings("unused")
-        private Semaphore retreive(String url, Semaphore semaphore) {
-            return semaphore == null
-                ? new Semaphore(perHost)
-                : semaphore;
-        }
+        downloadMapper = new ParallelMapperImpl(downloaders);
+        extractMapper = new ParallelMapperImpl(extractors);
     }
 
     @Override
-    public Result download(String s, int i) {
-        Cache cache = new Cache(i);
-        cache.urls.put(s,s);
-        cache.queue.add(downloadExecutor.submit(new DownloadTask(cache, 0, s)));
+    public Result download(String url, int depth) {
+        List<String> urls = new ArrayList<>();
+        urls.add(url);
+        download(urls, depth);
 
-        Future<?> future;
-        while (Objects.nonNull(future = cache.queue.poll())) {
+        return new Result(new ArrayList<>(downloaded), errors);
+    }
+
+
+    Function<String, Document> downloadFunc = l -> {
+        Document document = null;
+        try {
+            document = downloader.download(l);
+            downloaded.add(l);
+        } catch (IOException ex) {
+            errors.put(l, ex);
+        }
+        return document;
+    };
+
+    Function<Document, DownloadResult> extractFunc = l -> {
+        DownloadResult result = new DownloadResult();
+        if (l != null) {
             try {
-                future.get();
-            }
-            catch (ExecutionException | InterruptedException e) {
-                e.printStackTrace();
+                result.extractLinks = l.extractLinks();
+            } catch (IOException ex) {
+                result.url = l.toString();
+                result.exception = ex;
             }
 
         }
-        List<String> result = new ArrayList<>(cache.urls.keySet());
-        result.removeAll(cache.errors.keySet());
+        return result;
+    };
 
-        return new Result(result, cache.errors);
+    private void download(List<String> urls, int depth) {
+        try {
+            List<Document> documents = downloadMapper.map(downloadFunc, urls);
+            if (depth > 1) {
+                List<DownloadResult> results = extractMapper.map(extractFunc, documents);
+                List<String> extractLink = new ArrayList<>();
+
+                for (DownloadResult result : results) {
+                    if (result.extractLinks != null) {
+                        for (String s : result.extractLinks) {
+                            if (!extractLink.contains(s) && !downloaded.contains(s) && !errors.containsKey(s)) {
+                                extractLink.add(s);
+                            }
+                        }
+                    } else if (result.exception != null) {
+                        errors.put(result.url, result.exception);
+                    }
+                }
+
+                download(extractLink, depth - 1);
+            }
+        } catch (InterruptedException ex) {
+            System.out.println(ex.getMessage());
+        }
     }
 
     @Override
     public void close() {
         try {
-            downloadExecutor.shutdownNow();
+            downloadMapper.close();
+            extractMapper.close();
+        } catch (InterruptedException ex) {
+            System.out.println(ex.getMessage());
         }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            extractExecutor.shutdownNow();
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
+
     }
 
+    public static void main(String[] args) {
+        int downloaders = 1;
+        int extractors = 1;
+        int perHost = 1;
 
-    public static void main(String... args) throws Exception {
-        int depth = 1, downloadors = Integer.MAX_VALUE,
-            extractors = Integer.MAX_VALUE, perHost = Integer.MAX_VALUE;
         if (args.length < 1) {
-            throw new RuntimeException("Url is missing in command-line arguments.");
+            System.out.println("Usage: WebCrawler url [downloads [extractors [perHost]]]");
+            return;
         }
-        String url = args[0];
-        for (int i = 1; i < args.length && i < 5; i++) {
-            int n = Integer.valueOf(args[i]);
-            switch (i) {
-                case 1: depth       = n; break;
-                case 2: downloadors = n; break;
-                case 3: extractors  = n; break;
-                case 4: perHost     = n; break;
+
+        try {
+            if (args.length >= 2) {
+                downloaders = Integer.parseInt(args[1]);
             }
+            if (args.length >= 3) {
+                extractors = Integer.parseInt(args[2]);
+            }
+            if (args.length >= 4) {
+                perHost = Integer.parseInt(args[3]);
+            }
+        } catch (NumberFormatException ex) {
+            System.out.println("Invalid arguments: " + ex.getMessage());
+            return;
         }
-        Result result;
-        try (Crawler crawler = new WebCrawler(new CachingDownloader(), downloadors, extractors, perHost)) {
-            result = crawler.download(url, depth);
-        }
-        if (Objects.nonNull(result)) {
-            result.getDownloaded().forEach(System.out::println);
-            result.getErrors().forEach((k, v) -> System.err.printf("Error on url %s: %s\n", k, String.valueOf(v)));
+
+        try {
+            WebCrawler webCrawler = new WebCrawler(new CachingDownloader(), downloaders, extractors, perHost);
+            webCrawler.download(args[0], 10);
+        } catch (IOException ex) {
+            System.out.println("IOException: " + ex.getMessage());
         }
     }
 }

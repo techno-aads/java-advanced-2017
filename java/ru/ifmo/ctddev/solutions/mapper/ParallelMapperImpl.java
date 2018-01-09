@@ -16,8 +16,10 @@ public class ParallelMapperImpl implements ParallelMapper {
     private Lock locker = new ReentrantLock(true);
 
     public ParallelMapperImpl (int threads){
-        this.threads = threads;
-        executor = Executors.newWorkStealingPool(threads);
+        int maxThread =  Runtime.getRuntime().availableProcessors();
+        this.threads = Math.min(maxThread, threads);
+
+        executor = Executors.newWorkStealingPool(this.threads);
     }
 
     @Override
