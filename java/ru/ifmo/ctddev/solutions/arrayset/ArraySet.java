@@ -2,7 +2,7 @@ package ru.ifmo.ctddev.solutions.arrayset;
 
 import java.util.*;
 
-public class ArraySet<E> implements SortedSet<E> {
+public class ArraySet<E> extends AbstractSet<E> implements SortedSet<E> {
 
     protected static final Comparator NATURAL_ORDER_COMPARATOR = Comparator.naturalOrder();
 
@@ -23,7 +23,7 @@ public class ArraySet<E> implements SortedSet<E> {
         elements = addCollection(new ArrayList<>(c), comp);
     }
 
-    protected  ArraySet(ArraySet<E> parent, int from, int to) throws IllegalArgumentException, NullPointerException, IndexOutOfBoundsException {
+    protected  ArraySet(ArraySet<E> parent, int from, int to) throws IllegalArgumentException {
         this.comparator = parent.comparator;
         this.elements = parent.elements.subList(from, to);
     }
@@ -56,33 +56,20 @@ public class ArraySet<E> implements SortedSet<E> {
     @Override
     public SortedSet<E> headSet(E toElement) throws IndexOutOfBoundsException {
         int to = search(toElement);
-
-        return new ArraySet<>(this.elements.subList(0, to), comparator);
+        return new ArraySet<>(this, 0, to);
     }
 
     @Override
     public SortedSet<E> subSet(E fromElement, E toElement) throws IndexOutOfBoundsException {
         int to = search(toElement);
         int from = search(fromElement);
-        return new ArraySet<>(this.elements.subList(from, to), comparator);
+        return new ArraySet<>(this, from, to);
     }
 
     @Override
     public SortedSet<E> tailSet(E fromElement) throws IndexOutOfBoundsException {
         int from = search(fromElement);
-
-        return new ArraySet<>(this.elements.subList(from, elements.size()), comparator);
-    }
-
-    @Override
-    public Object[] toArray() {
-
-        return elements.toArray();
-    }
-
-    @Override
-    public <T> T[] toArray(T[] a) {
-        return (T[]) toArray();
+        return new ArraySet<>(this, from, elements.size());
     }
 
     @Override
@@ -90,13 +77,14 @@ public class ArraySet<E> implements SortedSet<E> {
 
         return Collections.unmodifiableList(elements).iterator();
     }
-
+    // this method has realization in AbstractSet but works too slow
     @Override
     public boolean contains(Object o) {
         E temp = (E) o;
         return Collections.binarySearch(elements, temp, comparator) >= 0;
     }
 
+    // this method has realization in AbstractSet but works too slow
     @Override
     public boolean containsAll(Collection<?> c) {
         for (Object e: c) {
@@ -131,35 +119,35 @@ public class ArraySet<E> implements SortedSet<E> {
         return size() == 0;
     }
 
-    @Override
-    public boolean remove(Object o) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean removeAll(Collection<?> c) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean retainAll(Collection<?> c) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void clear() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean add(E e) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean addAll(Collection<? extends E> c) {
-        throw new UnsupportedOperationException();
-    }
+//    @Override
+//    public boolean remove(Object o) {
+//        throw new UnsupportedOperationException();
+//    }
+//
+//    @Override
+//    public boolean removeAll(Collection<?> c) {
+//        throw new UnsupportedOperationException();
+//    }
+//
+//    @Override
+//    public boolean retainAll(Collection<?> c) {
+//        throw new UnsupportedOperationException();
+//    }
+//
+//    @Override
+//    public void clear() {
+//        throw new UnsupportedOperationException();
+//    }
+//
+//    @Override
+//    public boolean add(E e) {
+//        throw new UnsupportedOperationException();
+//    }
+//
+//    @Override
+//    public boolean addAll(Collection<? extends E> c) {
+//        throw new UnsupportedOperationException();
+//    }
 
     protected int search(E element) {
         int position = Collections.binarySearch(elements, element, comparator);
