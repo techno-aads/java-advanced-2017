@@ -29,22 +29,10 @@ public class ArraySet<E> extends AbstractSet<E> implements SortedSet<E> {
     }
 
     private List<E> addCollection(List<E> elements, Comparator<? super E> comparator) {
-        elements.sort(comparator);
-
         List<E> uniqueElements = new ArrayList<>();
-        Iterator<E> iterator = elements.iterator();
-        if (iterator.hasNext()) {
-            E prev = iterator.next();
-            uniqueElements.add(prev);
-            while (iterator.hasNext()) {
-                E current = iterator.next();
-                if (comparator.compare(prev, current) != 0) {
-                    uniqueElements.add(current);
-                }
-                prev = current;
-            }
-        }
-
+        Set<E> unique = new TreeSet<E>(comparator);
+        unique.addAll(elements);
+        uniqueElements.addAll(unique);
         return uniqueElements;
     }
 
@@ -84,17 +72,6 @@ public class ArraySet<E> extends AbstractSet<E> implements SortedSet<E> {
         return Collections.binarySearch(elements, temp, comparator) >= 0;
     }
 
-    // this method has realization in AbstractSet but works too slow
-    @Override
-    public boolean containsAll(Collection<?> c) {
-        for (Object e: c) {
-            if (!contains(e)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     @Override
     public E first() throws NoSuchElementException  {
         if(isEmpty())
@@ -113,41 +90,6 @@ public class ArraySet<E> extends AbstractSet<E> implements SortedSet<E> {
     public int size() throws NoSuchElementException {
         return elements.size();
     }
-
-    @Override
-    public boolean isEmpty() {
-        return size() == 0;
-    }
-
-//    @Override
-//    public boolean remove(Object o) {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    @Override
-//    public boolean removeAll(Collection<?> c) {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    @Override
-//    public boolean retainAll(Collection<?> c) {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    @Override
-//    public void clear() {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    @Override
-//    public boolean add(E e) {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    @Override
-//    public boolean addAll(Collection<? extends E> c) {
-//        throw new UnsupportedOperationException();
-//    }
 
     protected int search(E element) {
         int position = Collections.binarySearch(elements, element, comparator);
