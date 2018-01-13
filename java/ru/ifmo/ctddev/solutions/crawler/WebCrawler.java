@@ -4,23 +4,21 @@ import info.kgeorgiy.java.advanced.crawler.*;
 import info.kgeorgiy.java.advanced.mapper.ParallelMapper;
 import ru.ifmo.ctddev.solutions.mapper.ParallelMapperImpl;
 
-import javax.print.Doc;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Semaphore;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class WebCrawler implements Crawler {
     private Downloader downloader;
     private int downloaders;
     private int extractors;
     private int perHost;
+    private Map<String, Semaphore> downloadsLimit;
 
     protected class DownloadResult {
         protected List<String> extractLinks;
@@ -47,6 +45,8 @@ public class WebCrawler implements Crawler {
 
         downloadMapper = new ParallelMapperImpl(downloaders);
         extractMapper = new ParallelMapperImpl(extractors);
+
+        downloadsLimit = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -62,10 +62,16 @@ public class WebCrawler implements Crawler {
     Function<String, Document> downloadFunc = l -> {
         Document document = null;
         try {
+            String host = URLUtils.getHost(l);
+            Semaphore semaphore = downloadsLimit.computeIfAbsent(host, f -> new Semaphore(perHost));
+            semaphore.acquire();
             document = downloader.download(l);
+            semaphore.release();
             downloaded.add(l);
         } catch (IOException ex) {
             errors.put(l, ex);
+        } catch (InterruptedException ex) {
+            errors.put(l, new IOException(ex.getMessage()));
         }
         return document;
     };

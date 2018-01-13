@@ -8,15 +8,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class ParallelMapperImpl implements ParallelMapper {
     private ExecutorService executor;
     private int threads;
-    private Lock locker = new ReentrantLock(true);
 
     public ParallelMapperImpl(int threads) {
         int maxThread = Runtime.getRuntime().availableProcessors();
@@ -27,25 +24,18 @@ public class ParallelMapperImpl implements ParallelMapper {
 
     @Override
     public <T, R> List<R> map(Function<? super T, ? extends R> f, List<? extends T> args) throws InterruptedException {
-        //todo
-        //
-        ArrayList<Future<List<R>>> futures = new ArrayList<>();
-        locker.lock();
-        try {
-            int sizeSubList = args.size() / threads;
-            for (int i = 0; i < threads; i++) {
-                int localI = i;
-                Future<List<R>> future = executor.submit(() -> {
-                    int startIndex = sizeSubList * localI;
-                    int endIndex = (localI == threads - 1) ? args.size() : startIndex + sizeSubList;
-                    return args.subList(startIndex, endIndex).stream().map(f).collect(Collectors.toList());
-                });
-                futures.add(future);
-            }
-        } finally {
-            locker.unlock();
-        }
 
+        ArrayList<Future<List<R>>> futures = new ArrayList<>();
+        int sizeSubList = args.size() / threads;
+        for (int i = 0; i < threads; i++) {
+            int localI = i;
+            Future<List<R>> future = executor.submit(() -> {
+                int startIndex = sizeSubList * localI;
+                int endIndex = (localI == threads - 1) ? args.size() : startIndex + sizeSubList;
+                return args.subList(startIndex, endIndex).stream().map(f).collect(Collectors.toList());
+            });
+            futures.add(future);
+        }
         ArrayList<R> results = new ArrayList<>();
         for (Future<List<R>> future : futures) {
             try {
