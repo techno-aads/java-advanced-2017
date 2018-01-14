@@ -1,0 +1,1 @@
+java -Dfile.encoding=UTF8 -cp "artifacts/*" info.kgeorgiy.java.advanced.mapper.Tester list ru.ifmo.ctddev.solutions.mapper.ParallelMapperImpl,ru.ifmo.ctddev.solutions.mapper.IterativeParallelism
