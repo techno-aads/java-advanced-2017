@@ -1,22 +1,25 @@
 package ru.ifmo.ctddev.solutions.implementor;
 
+import com.sun.org.apache.xpath.internal.operations.Mod;
+import info.kgeorgiy.java.advanced.implementor.Impler;
+import info.kgeorgiy.java.advanced.implementor.ImplerException;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import info.kgeorgiy.java.advanced.implementor.Impler;
-import info.kgeorgiy.java.advanced.implementor.ImplerException;
-
-import javax.sql.rowset.CachedRowSet;
 
 public class Implementor implements Impler {
 
@@ -26,13 +29,22 @@ public class Implementor implements Impler {
     private String packageName;
     private Comparator<Class<?>> CLASS_COMPARATOR = Comparator.comparing(Class::getSimpleName);
     private Set<Class<?>> imports;
+    private boolean isClass;
 
     @Override
     public void implement(Class<?> clazz, Path path) throws ImplerException {
         try {
             File out = getOutputFile(clazz, path);
             PrintWriter writer = new PrintWriter(out);
-            String implementation = getImplementedClass(clazz);
+            String implementation;
+            if (clazz.isInterface()) {
+                isClass = false;
+                implementation = getImplementedClass(clazz);
+            } else {
+                isClass = true;
+                validate(clazz);
+                implementation = getExtendedClass(clazz);
+            }
             writer.write(implementation);
             writer.close();
             PrintWriter secondWriter = new PrintWriter(out.getName());
@@ -40,6 +52,30 @@ public class Implementor implements Impler {
             secondWriter.close();
         } catch (Exception e) {
             throw new ImplerException(e);
+        }
+    }
+
+    private void validate(Class<?> clazz) throws ImplerException {
+        if (clazz.isPrimitive()) {
+            throw new ImplerException("Type is a primitive.");
+        }
+        if (!clazz.isInterface()) {
+            if (Modifier.isFinal(clazz.getModifiers())) {
+                throw new ImplerException("Cannot extend final class: " + clazz.toString());
+            }
+        }
+        if (Enum.class.isAssignableFrom(clazz)) {
+            throw new ImplerException("Cannot extend enum type: " + clazz.toString());
+        }
+        boolean allConstructorsPrivate = true;
+        Constructor[] constructors = clazz.getDeclaredConstructors();
+        for (Constructor constructor : constructors) {
+            if (!Modifier.isPrivate(constructor.getModifiers())) {
+                allConstructorsPrivate = false;
+            }
+        }
+        if (allConstructorsPrivate) {
+            throw new ImplerException("Cannot extend class with only private constructors: " + clazz.toString());
         }
     }
 
@@ -60,6 +96,11 @@ public class Implementor implements Impler {
         return generateHeader() + generateBody() + "}";
     }
 
+    private String getExtendedClass(Class<?> currentClass) {
+        extractClassParams(currentClass);
+        return generateHeader() + generateClassBody() + "}";
+    }
+
     private String generateHeader() {
         StringBuilder headerStruct = new StringBuilder();
         headerStruct
@@ -68,9 +109,12 @@ public class Implementor implements Impler {
             headerStruct.append("import ").append(s.getName()).append(";\n");
         }
         headerStruct.append("\n");
-        headerStruct.append("public class ").append(className)
-                .append("Impl implements ").append(className).append(" {\n");
-
+        headerStruct.append("public class ").append(className);
+        if (isClass) {
+            headerStruct.append("Impl extends ").append(className).append(" {\n");
+        } else {
+            headerStruct.append("Impl implements ").append(className).append(" {\n");
+        }
         return headerStruct.toString();
     }
 
@@ -81,6 +125,39 @@ public class Implementor implements Impler {
         }
         return body.toString();
 
+    }
+
+    private String generateClassBody() {
+        StringBuilder classBody = new StringBuilder();
+        classBody.append(implementConstructors());
+        for (Method m : methods) {
+            int modifiers = m.getModifiers();
+            if (Modifier.isAbstract(modifiers)) {
+                classBody.append(implementMethod(m));
+            }
+        }
+        Method[] methods = clazz.getDeclaredMethods();
+        for (Method m : methods) {
+            int modifiers = m.getModifiers();
+            if (Modifier.isAbstract(modifiers) && !Modifier.isPublic(modifiers)) {
+                classBody.append(implementMethod(m));
+            }
+        }
+        boolean abstractClass = true;
+        Class superClass = clazz;
+        while (abstractClass) {
+            abstractClass = false;
+            superClass = superClass.getSuperclass();
+            methods = superClass.getDeclaredMethods();
+            for (Method m : methods) {
+                int modifiers = m.getModifiers();
+                if (Modifier.isAbstract(modifiers) && !Modifier.isPublic(modifiers)) {
+                    abstractClass = true;
+                    classBody.append(implementMethod(m));
+                }
+            }
+        }
+        return classBody.toString();
     }
 
     private String implementMethod(Method method) {
@@ -112,6 +189,61 @@ public class Implementor implements Impler {
         }
         methodStruct.append("    }\n\n");
         return methodStruct.toString();
+    }
+
+    public String implementConstructors() {
+        StringBuilder constructorStruct = new StringBuilder();
+        Constructor[] constructors = clazz.getDeclaredConstructors();
+        for (Constructor constructor : constructors) {
+            int modifiers = constructor.getModifiers();
+            if (Modifier.isTransient(modifiers)) {
+                modifiers -= Modifier.TRANSIENT;
+            }
+            if (!Modifier.isPrivate(modifiers)) {
+                constructorStruct.append("    ").append(Modifier.toString(modifiers))
+                        .append(" ")
+                        .append(className)
+                        .append("Impl")
+                        .append("(");
+                Class[] params = constructor.getParameterTypes();
+                Class[] except = constructor.getExceptionTypes();
+                if (params.length > 0) {
+                    for (int i = 0; i < params.length; i++) {
+                        constructorStruct.append(params[i].getTypeName())
+                                .append(" args")
+                                .append(i);
+                        if (i == params.length - 1) {
+                            constructorStruct.append(")");
+                        } else {
+                            constructorStruct.append(", ");
+                        }
+                    }
+                } else {
+                    constructorStruct.append(")");
+                }
+                if (except.length > 0) {
+                    constructorStruct.append(" throws ");
+                    for (int i = 0; i < except.length; i++) {
+                        constructorStruct.append(except[i].getTypeName());
+                        if (i < except.length - 1) {
+                            constructorStruct.append(", ");
+                        }
+                    }
+                }
+                constructorStruct.append(" {\n        super(");
+                if (params.length > 0) {
+                    for (int i = 0; i < params.length; i++) {
+                        constructorStruct.append("args")
+                                .append(i);
+                        if (i < params.length - 1) {
+                            constructorStruct.append(", ");
+                        }
+                    }
+                }
+                constructorStruct.append(");\n    }\n\n");
+            }
+        }
+        return constructorStruct.toString();
     }
 
     String methodParams(Method m) {
