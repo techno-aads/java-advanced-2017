@@ -1,9 +1,10 @@
 package ru.ifmo.ctddev.solutions.implementor;
 
-import com.sun.org.apache.xpath.internal.operations.Mod;
-import info.kgeorgiy.java.advanced.implementor.Impler;
 import info.kgeorgiy.java.advanced.implementor.ImplerException;
+import info.kgeorgiy.java.advanced.implementor.JarImpler;
 
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -14,14 +15,13 @@ import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class Implementor implements Impler {
+public class Implementor implements JarImpler {
 
     private Class<?> clazz;
     private String className;
@@ -30,12 +30,13 @@ public class Implementor implements Impler {
     private Comparator<Class<?>> CLASS_COMPARATOR = Comparator.comparing(Class::getSimpleName);
     private Set<Class<?>> imports;
     private boolean isClass;
+    private File outputJavaFile;
 
     @Override
     public void implement(Class<?> clazz, Path path) throws ImplerException {
         try {
-            File out = getOutputFile(clazz, path);
-            PrintWriter writer = new PrintWriter(out);
+            outputJavaFile = getOutputFile(clazz, path);
+            PrintWriter writer = new PrintWriter(outputJavaFile);
             String implementation;
             if (clazz.isInterface()) {
                 isClass = false;
@@ -47,7 +48,7 @@ public class Implementor implements Impler {
             }
             writer.write(implementation);
             writer.close();
-            PrintWriter secondWriter = new PrintWriter(out.getName());
+            PrintWriter secondWriter = new PrintWriter(outputJavaFile.getName());
             secondWriter.write(implementation);
             secondWriter.close();
         } catch (Exception e) {
@@ -306,5 +307,37 @@ public class Implementor implements Impler {
         Files.createDirectories(outputPath);
         outputPath = Paths.get(outputPath.toString(), classFileName);
         return outputPath.toFile();
+    }
+
+    @Override
+    public void implementJar(Class<?> token, Path jarFile) throws ImplerException {
+        Path directoryPath;
+        if (jarFile.toString().lastIndexOf(File.separator) != -1) {
+            directoryPath = Paths.get(jarFile.toString().substring(0, jarFile.toString().lastIndexOf(File.separator)));
+        }
+        else{
+            directoryPath = Paths.get("").toAbsolutePath();
+        }
+        implement(token, directoryPath);
+        compileAndPackToJar(token, directoryPath, jarFile);
+    }
+
+    private void compileAndPackToJar(Class clazz, Path fileDirectory, Path jarFile) throws ImplerException {
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        List<String> args = new ArrayList<>();
+        args.add("-cp");
+        args.add(System.getProperty("java.class.path"));
+        args.add(outputJavaFile.toString());
+        int exitCode = compiler.run(null, null, null, args.toArray(new String[args.size()]));
+        if (exitCode != 0) throw new ImplerException("Compilation error");
+
+        String packagePath = clazz.getPackage().getName().replace(".", File.separator);
+        String classPath = packagePath + File.separator + clazz.getSimpleName() + "Impl.class";
+        try (JarOutputStream jarOutputStream = new JarOutputStream(Files.newOutputStream(jarFile))) {
+            jarOutputStream.putNextEntry(new JarEntry(classPath));
+            Files.copy(fileDirectory.resolve(classPath), jarOutputStream);
+        } catch (IOException e) {
+            throw new ImplerException("Packaging error");
+        }
     }
 }
