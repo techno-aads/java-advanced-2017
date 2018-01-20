@@ -1,0 +1,1 @@
+typeSearchIndex = [{"p":"ru.ifmo.ctddev.solutions.implementor","l":"Implementor"}]
