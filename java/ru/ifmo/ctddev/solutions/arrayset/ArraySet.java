@@ -130,7 +130,7 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E>
     {
         List<E> newArray = new ArrayList<>(elementsData);
         reverse(newArray);
-        return new ru.ifmo.ctddev.turov.arrayset.ArraySet<>(newArray, reverseOrder(comparator));
+        return new ru.ifmo.ctddev.solutions.arrayset.ArraySet<>(newArray, reverseOrder(comparator));
     }
 
     @Override
@@ -156,7 +156,7 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E>
                 && (fromPosition >= 0
                 && toPosition >= 0))
         {
-            return new ru.ifmo.ctddev.turov.arrayset.ArraySet<>(emptyList(), comparator);
+            return new ru.ifmo.ctddev.solutions.arrayset.ArraySet<>(emptyList(), comparator);
         }
 
         if (!b && fromPosition >= 0)
@@ -167,7 +167,7 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E>
         {
             toIndex++;
         }
-        return new ru.ifmo.ctddev.turov.arrayset.ArraySet<>(elementsData.subList(fromIndex, toIndex), comparator);
+        return new ru.ifmo.ctddev.solutions.arrayset.ArraySet<>(elementsData.subList(fromIndex, toIndex), comparator);
     }
 
     @Override
@@ -175,7 +175,7 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E>
     {
         int position = binarySearch(elementsData, e, comparator);
         int actualPosition = position < 0 ? (-position -1) : b ? position + 1 : position;
-        return new ru.ifmo.ctddev.turov.arrayset.ArraySet<>(elementsData.subList(0, actualPosition), comparator);
+        return new ru.ifmo.ctddev.solutions.arrayset.ArraySet<>(elementsData.subList(0, actualPosition), comparator);
     }
 
     @Override
@@ -183,7 +183,7 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E>
     {
         int position = binarySearch(elementsData, e, comparator);
         int actualPosition = position < 0 ? (-position -1) : !b ? position + 1 : position;
-        return new ru.ifmo.ctddev.turov.arrayset.ArraySet<>(elementsData.subList(actualPosition, size()), comparator);
+        return new ru.ifmo.ctddev.solutions.arrayset.ArraySet<>(elementsData.subList(actualPosition, size()), comparator);
     }
 
     @SuppressWarnings("unchecked")
@@ -203,21 +203,21 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E>
     {
         int from = search(fromElement);
         int to = search(toElement);
-        return new ru.ifmo.ctddev.turov.arrayset.ArraySet<>(elementsData.subList(from, to), comparator);
+        return new ru.ifmo.ctddev.solutions.arrayset.ArraySet<>(elementsData.subList(from, to), comparator);
     }
 
     @Override
     public SortedSet<E> headSet(E toElement)
     {
         int to = search(toElement);
-        return new ru.ifmo.ctddev.turov.arrayset.ArraySet<>(elementsData.subList(0, to), comparator);
+        return new ru.ifmo.ctddev.solutions.arrayset.ArraySet<>(elementsData.subList(0, to), comparator);
     }
 
     @Override
     public SortedSet<E> tailSet(E fromElement)
     {
         int from = search(fromElement);
-        return new ru.ifmo.ctddev.turov.arrayset.ArraySet<>(elementsData.subList(from, elementsData.size()), comparator);
+        return new ru.ifmo.ctddev.solutions.arrayset.ArraySet<>(elementsData.subList(from, elementsData.size()), comparator);
     }
 
     @Override
