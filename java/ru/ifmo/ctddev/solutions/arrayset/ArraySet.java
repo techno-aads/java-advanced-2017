@@ -1,5 +1,4 @@
 package ru.ifmo.ctddev.solutions.arrayset;
-
 import java.util.*;
 
 //https://habrahabr.ru/post/232963/
@@ -23,24 +22,15 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E>{
 
 
     public ArraySet(Collection<E> collection, Comparator<? super E> comparator){
+
         this.m_Comparator = comparator;
 
         ArrayList<E> inputData = new ArrayList<>(collection);
-        ArrayList<E> tempData = new ArrayList<>(inputData.size());
 
-        inputData.sort(comparator);
+        SortedSet set = new TreeSet<E>(comparator);
+        set.addAll(inputData);
 
-        if(inputData.size() != 0){
-            tempData.add(inputData.get(0));
-        }
-        for(int i = 1; i< inputData.size();i++){
-            if (comparator.compare(inputData.get(i), inputData.get(i - 1)) != 0) {
-                tempData.add(inputData.get(i));
-            }
-        }
-        tempData.trimToSize();
-
-        m_Data = tempData;
+        m_Data = new ArrayList<E> (set);
 
         m_DataReversed = new ArrayList<>(m_Data);
         m_DataReversed.sort(comparator.reversed());
@@ -54,8 +44,6 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E>{
 
     public ArraySet(List<E> data, List<E> dataReversed, Comparator<? super E> comparator, boolean defaultOrder ){
         this.m_Data = data;
-//        List<E> dataR = ((List<E>) ((ArrayList<E>)data).clone());
-//        Collections.reverse(dataR);
         this.m_DataReversed = dataReversed;
         this.m_Comparator = comparator;
         this.m_DefaultOrder = defaultOrder;

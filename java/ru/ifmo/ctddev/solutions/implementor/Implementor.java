@@ -1,5 +1,4 @@
 package ru.ifmo.ctddev.solutions.implementor;
-
 import info.kgeorgiy.java.advanced.implementor.Impler;
 import info.kgeorgiy.java.advanced.implementor.ImplerException;
 import info.kgeorgiy.java.advanced.implementor.JarImpler;
@@ -348,7 +347,7 @@ public class Implementor implements Impler, JarImpler {
      */
     private Path createDirectory(Path _Path, Class<?> c, String suffix) throws IOException {
         if (c.getPackage() != null) {
-            _Path = _Path.resolve(c.getPackage().getName().replace(".", "\\"));
+            _Path = _Path.resolve(c.getPackage().getName().replace(".", "/"));
         }
         Files.createDirectories(_Path);
         return _Path.resolve(ClassName + suffix);
