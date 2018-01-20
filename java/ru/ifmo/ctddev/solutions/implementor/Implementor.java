@@ -9,24 +9,40 @@ import javax.tools.ToolProvider;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 
+/**
+ * Generate code which implements specified interface or extends class
+ */
 public class Implementor implements Impler, JarImpler {
 
+    /**
+     * Symbol used to separate package parts
+     */
     public static final String PACKAGE_SEPARATOR = ".";
+
+    /**
+     * Java class file extension
+     */
     public static final String JAVA_CLASS_EXTENSION = ".class";
+
+    /**
+     * Java source file extension
+     */
     public static final String JAVA_SOURCE_EXTENSION = ".java";
+
+    /**
+     * Prefix to add to implement class or interfaces
+     */
     public static final String RESULT_CLASS_NAME_SUFFIX = "Impl";
 
     /**
@@ -68,13 +84,13 @@ public class Implementor implements Impler, JarImpler {
     /**
      * Adds implemented methods exceptions to generated source code
      *
-     * @param method Implemented method
+     * @param executable Implemented executable
      * @return thrown exceptions source code definition
      * @see java.lang.reflect.Method
      * @see java.lang.StringBuilder
      */
-    private StringBuilder printMethodsThrowsExceptions(Method method) {
-        Type[] exceptions = method.getExceptionTypes();
+    private StringBuilder printMethodsThrowsExceptions(Executable executable) {
+        Type[] exceptions = executable.getExceptionTypes();
         if (exceptions.length == 0) {
             return new StringBuilder("");
         }
@@ -119,36 +135,79 @@ public class Implementor implements Impler, JarImpler {
     }
 
     /**
-     * Adds implemented methods source code(including thrown exceptions and body
+     * Adds implemented methods body to generated source code
      *
-     * @param method Implemented method
-     * @return Source code of implemented method
-     * @see java.lang.reflect.Method
+     * @param constructor Implemented constructor
+     * @return constructor body source code
+     * @see java.lang.reflect.Constructor
      * @see java.lang.StringBuilder
      */
+    private StringBuilder printConstructorBody(Constructor constructor) {
 
-    private StringBuilder printMethodsRealisation(Method method) {
+        List<String> parameterList = Arrays.stream(constructor.getParameters())
+                .map(Parameter::getName)
+                .collect(Collectors.toList());
+        return new StringBuilder("\t\tsuper(" + String.join(", ", parameterList) + ");");
+
+    }
+
+    /**
+     * Returns string representation of executable parameters
+     *
+     * @param executable Implemented executable
+     * @return string representation of executable parameters
+     * @see java.lang.reflect.Executable
+     * @see java.lang.StringBuilder
+     */
+    public StringBuilder getMethodParametersRepr(Executable executable) {
         StringBuilder rv = new StringBuilder();
-        method.getDefaultValue();
-        String modifiersString = Modifier.toString(method.getModifiers() & ((Modifier.ABSTRACT | Modifier.TRANSIENT | Modifier.STATIC) ^ Integer.MAX_VALUE));
-        if (rv.length() > 0) {
-            modifiersString += " ";
-        }
-        rv.append("\t").append(modifiersString).append(" ");
-        rv.append(method.getReturnType().getTypeName());
-        rv.append(" ").append(method.getName()).append("(");
         int i = 0;
-        for (Type t : method.getParameterTypes()) {
+        for (Parameter t : executable.getParameters()) {
             if (i != 0) {
                 rv.append(", ");
             }
-            rv.append(t.getTypeName()).append(" ").append(argName(i));
+            rv.append(t.getType().getCanonicalName()).append(" ").append(t.getName());
             i++;
         }
+        return rv;
+    }
+
+    /**
+     * Adds implemented methods source code(including thrown exceptions and body
+     *
+     * @param className  name of the implemented class
+     * @param executable Implemented executable
+     * @return Source code of implemented executable
+     * @see java.lang.reflect.Method
+     * @see java.lang.StringBuilder
+     */
+    private StringBuilder printMethodsRealisation(String className, Executable executable) {
+        StringBuilder rv = new StringBuilder();
+        String modifiersString = Modifier.toString(executable.getModifiers() & ((Modifier.ABSTRACT | Modifier.TRANSIENT | Modifier.STATIC) ^ Integer.MAX_VALUE));
+        if (rv.length() > 0) {
+            modifiersString += " ";
+        }
+
+        rv.append("\t").append(modifiersString).append(" ");
+        if (executable instanceof Method) {
+            rv.append(((Method) executable).getReturnType().getTypeName());
+        }
+        rv.append(" ");
+        if (executable instanceof Method) {
+            rv.append(executable.getName());
+        } else {
+            rv.append(className);
+        }
+        rv.append("(");
+        rv.append(getMethodParametersRepr(executable));
         rv.append(")");
-        rv.append(printMethodsThrowsExceptions(method));
+        rv.append(printMethodsThrowsExceptions(executable));
         rv.append(" {\n");
-        rv.append(printMethodsBody(method));
+        if (executable instanceof Method) {
+            rv.append(printMethodsBody((Method) executable));
+        } else {
+            rv.append(printConstructorBody((Constructor) executable));
+        }
         rv.append("\t}\n");
         return rv;
     }
@@ -162,7 +221,6 @@ public class Implementor implements Impler, JarImpler {
      */
     @Override
     public void implementJar(Class<?> token, Path jarFile) throws ImplerException {
-
         compileFile(implementedCode);
         String fullPathToClassFile = implementedCode.toString().replace(JAVA_SOURCE_EXTENSION, JAVA_CLASS_EXTENSION);
         String classFileName = Paths.get(fullPathToClassFile).getFileName().toString();
@@ -174,15 +232,26 @@ public class Implementor implements Impler, JarImpler {
     }
 
     /**
+     * Return executable identification string representation
+     *
+     * @param executable executable to generate string representation
+     * @see java.lang.reflect.Executable
+     */
+    public String getExecutableStringRepr(Executable executable) {
+        StringBuilder reprStringBuilder = new StringBuilder(executable.getName());
+        reprStringBuilder.append(" ").append(getMethodParametersRepr(executable));
+        return reprStringBuilder.toString();
+    }
+
+    /**
      * Creates implementation of specified interface
      *
      * @param token type token to create implementation for
      * @param root  root directory
      * @throws ImplerException When impossible to create Implementation for token
      * @see java.lang.Class
-     * @see java.io.File
+     * @see java.nio.file.Path
      */
-
     @Override
     public void implement(Class<?> token, Path root) throws ImplerException {
         Class clazz;
@@ -192,6 +261,11 @@ public class Implementor implements Impler, JarImpler {
         if (Modifier.isFinal(token.getModifiers())) {
             throw new ImplerException("class is final");
         }
+
+        if (token == void.class || token == Enum.class || token.isEnum() || token.isArray()) {
+            throw new ImplerException("Impossible to implement");
+        }
+
         try {
             clazz = Implementor.class.getClassLoader().loadClass(token.getCanonicalName());
         } catch (Exception e) {
@@ -211,17 +285,42 @@ public class Implementor implements Impler, JarImpler {
         }
 
         result.append("public class ").append(className).append(" ");
-        Method[] methods;
+        List<Executable> executableList = new ArrayList<>();
         if (clazz.isInterface()) {
             result.append("implements");
-            methods = clazz.getMethods();
+            Collections.addAll(executableList, clazz.getMethods());
         } else {
             result.append("extends");
-            methods = clazz.getDeclaredMethods();
+            Class superClazz = clazz.getSuperclass();
+            if (superClazz != null) {
+                Collections.addAll(executableList, superClazz.getDeclaredMethods());
+            }
+            List<Method> methods = Arrays.stream(clazz.getDeclaredMethods()).filter(
+                    method -> method.getDeclaringClass().equals(clazz)
+            ).collect(Collectors.toList());
+
+            executableList.addAll(methods);
+
+            List<Constructor> constructors = Arrays.stream(clazz.getDeclaredConstructors()).filter(
+                    constructor ->
+                            !Modifier.isPrivate(constructor.getModifiers()) & !Modifier.isFinal(constructor.getModifiers())
+            ).collect(Collectors.toList());
+            if (constructors.size() == 0) {
+                throw new ImplerException("no available constructors");
+            }
+            executableList.addAll(constructors);
         }
         result.append(" ").append(clazz.getName()).append(" {\n");
-        for (Method method : methods) {
-            result.append(printMethodsRealisation(method));
+        Set<String> uniqueMethods = new LinkedHashSet();
+        for (Executable executable : executableList) {
+            if (executable instanceof Method) {
+                String executableStringRepr = getExecutableStringRepr(executable);
+                if (uniqueMethods.contains(executableStringRepr) || !clazz.isInterface() && !Modifier.isAbstract(executable.getModifiers())) {
+                    continue;
+                }
+                uniqueMethods.add(executableStringRepr);
+            }
+            result.append(printMethodsRealisation(className, executable));
         }
         result.append("}\n");
         writeFile(implementedCode);
@@ -232,7 +331,7 @@ public class Implementor implements Impler, JarImpler {
      *
      * @param path directory where source code to compile located
      * @return compiler return code (0 if succeed)
-     * @see java.io.File
+     * @see java.nio.file.Path
      * @see java.lang.String
      */
     private int compileFile(final Path path) {
@@ -258,6 +357,7 @@ public class Implementor implements Impler, JarImpler {
     private void makeJar(Path jarFile, String fullPathToClassFile, String classPath) throws ImplerException {
         Manifest manifest = new Manifest();
         manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
+
         try (JarOutputStream jarOutput = new JarOutputStream(new FileOutputStream(jarFile.toFile()), manifest)) {
             jarOutput.putNextEntry(new ZipEntry(classPath));
             Files.copy(Paths.get(fullPathToClassFile), jarOutput);
