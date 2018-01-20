@@ -1,5 +1,3 @@
-package ru.ifmo.ctddev.solutions.walk;
-
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
