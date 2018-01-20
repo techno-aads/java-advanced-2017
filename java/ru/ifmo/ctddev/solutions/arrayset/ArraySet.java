@@ -2,7 +2,7 @@ package ru.ifmo.ctddev.solutions.arrayset;
 
 import java.util.*;
 
-public class ArraySet<E> extends AbstractSet<E> implements SortedSet<E>, Iterable<E> {
+public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E>, Iterable<E> {
 
     public Comparator<? super E> comparator = null;
     private List<E> data = new ArrayList<>();
@@ -10,10 +10,6 @@ public class ArraySet<E> extends AbstractSet<E> implements SortedSet<E>, Iterabl
 
     public ArraySet() {
         this(Collections.emptySortedSet(), null);
-    }
-
-    public ArraySet(Collection<? extends E> c) {
-        this(c, null);
     }
 
     @SuppressWarnings("unchecked")
@@ -26,7 +22,6 @@ public class ArraySet<E> extends AbstractSet<E> implements SortedSet<E>, Iterabl
         for (E i : set)
             data.add(i);
     }
-
 
     private ArraySet(List<E> data, Comparator<? super E> comparator) {
         this.data = data;
@@ -106,47 +101,63 @@ public class ArraySet<E> extends AbstractSet<E> implements SortedSet<E>, Iterabl
     }
 
     @Override
-    public <E> E[] toArray(E[] a) {
-        return data.toArray(a);
+    public E lower(E e) {
+        int tmp_index = binarySearch(e);
+        if (tmp_index < 0) {
+            tmp_index = -tmp_index - 1;
+        }
+        tmp_index = tmp_index - 1;
+        if (tmp_index >= 0 && tmp_index < data.size()) {
+            return data.get(tmp_index);
+        }
+        return null;
     }
 
     @Override
-    public Object[] toArray() {
-        return data.toArray();
+    public E floor(E e) {
+        int tmp_index = binarySearch(e);
+        if (tmp_index < 0) {
+            tmp_index = -tmp_index - 2;
+        }
+        if (tmp_index >= 0 && tmp_index < data.size()) {
+            return data.get(tmp_index);
+        }
+        return null;
     }
 
     @Override
-    public boolean isEmpty() {
-        return size() == 0;
+    public E ceiling(E e) {
+        int tmp_index = binarySearch(e);
+        if (tmp_index < 0) {
+            tmp_index = -tmp_index - 1;
+        }
+        if (tmp_index >= 0 && tmp_index < data.size()) {
+            return data.get(tmp_index);
+        }
+        return null;
     }
 
     @Override
-    public boolean add(E e) {
+    public E higher(E e) {
+        int tmp_index = binarySearch(e);
+        if (tmp_index < 0) {
+            tmp_index = -tmp_index - 1;
+        } else {
+            tmp_index += 1;
+        }
+        if (tmp_index >= 0 && tmp_index < data.size()) {
+            return data.get(tmp_index);
+        }
+        return null;
+    }
+
+    @Override
+    public E pollFirst() {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public boolean remove(Object o) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean addAll(Collection<? extends E> c) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean retainAll(Collection<?> c) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean removeAll(Collection<?> c) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void clear() {
+    public E pollLast() {
         throw new UnsupportedOperationException();
     }
 
@@ -173,10 +184,65 @@ public class ArraySet<E> extends AbstractSet<E> implements SortedSet<E>, Iterabl
     }
 
     @Override
+    public NavigableSet<E> descendingSet() {
+        ArraySet<E> descendingSet = new ArraySet<>(new ArrayList<>(data), Collections.reverseOrder(comparator));
+        Collections.reverse(descendingSet.data);
+        return descendingSet;
+    }
+
+    @Override
+    public Iterator<E> descendingIterator() {
+        ArrayList<E> resArrayList = new ArrayList<>(data);
+        Collections.reverse(resArrayList);
+        return Collections.unmodifiableList(resArrayList).iterator();
+    }
+
+    private ArraySet<E> getSubSet(int newFromIndex, int newToIndex) {
+        if (newFromIndex == 0 && newToIndex == size()) {
+            return this;
+        } else if (newFromIndex < newToIndex) {
+            return new ArraySet<E>(data.subList(newFromIndex, newToIndex), comparator);
+        } else {
+            return new ArraySet<E>();
+        }
+    }
+
+    @Override
+    public NavigableSet<E> subSet(E fromElement, boolean fromInclusive, E toElement, boolean toInclusive) {
+        return tailSet(fromElement, fromInclusive).headSet(toElement, toInclusive);
+    }
+
+    @Override
+    public NavigableSet<E> headSet(E toElement, boolean inclusive) {
+        int tmpIndex = binarySearch(toElement);
+
+        if (tmpIndex >= 0) {
+            if (inclusive) {
+                tmpIndex += 1;
+            }
+        } else {
+            tmpIndex = -tmpIndex - 1;
+        }
+        return getSubSet(0, tmpIndex);
+    }
+
+    @Override
+    public NavigableSet<E> tailSet(E fromElement, boolean inclusive) {
+        int tmpIndex = binarySearch(fromElement);
+
+        if (tmpIndex >= 0) {
+            if (!inclusive) {
+                tmpIndex += 1;
+            }
+        } else {
+            tmpIndex = -tmpIndex - 1;
+        }
+        return getSubSet(tmpIndex, size());
+    }
+
+    @Override
     public SortedSet<E> subSet(E fromElement, E toElement) {
-        int from = upperElementIndex(fromElement, true);
-        int to = lowerElementIndex(toElement, false);
-        return new ArraySet<>(data.subList(from, to + 1), comparator());
+        return subSet(fromElement, true, toElement, false);
     }
 
     @Override
@@ -189,10 +255,5 @@ public class ArraySet<E> extends AbstractSet<E> implements SortedSet<E>, Iterabl
     public SortedSet<E> tailSet(E fromElement) {
         int from = upperElementIndex(fromElement, true);
         return new ArraySet<>(data.subList(from, data.size()), comparator());
-    }
-
-    @Override
-    public Spliterator<E> spliterator() {
-        return null;
     }
 }
