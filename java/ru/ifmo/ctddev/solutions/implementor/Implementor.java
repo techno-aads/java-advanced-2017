@@ -5,10 +5,7 @@ import info.kgeorgiy.java.advanced.implementor.ImplerException;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Parameter;
+import java.lang.reflect.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -26,7 +23,7 @@ public class Implementor implements Impler {
         if (Modifier.isFinal(aClass.getModifiers())) {
             throw new ImplerException("Class is final");
         }
-        if (aClass.isEnum() ) {
+        if (aClass.isEnum() || aClass == Enum.class) {
             throw new ImplerException("Class is Enum");
         }
         if (aClass.isPrimitive()) {
@@ -34,7 +31,6 @@ public class Implementor implements Impler {
         }
         setPackage(aClass, result);
         setClass(aClass, result);
-        if (aClass.getSimpleName().equals("RMIIIOPServer")) System.out.println(result);
 
         try {
             writeResultFile(aClass, path, result);
@@ -65,15 +61,12 @@ public class Implementor implements Impler {
     }
 
     private void setConstructors(Class<?> aClass, StringBuilder result) throws ImplerException {
-
         boolean hasConstructors = false;
 
-        for (Constructor constructor : aClass.getConstructors()) {
-
-            if (!Modifier.isPublic(constructor.getModifiers())) {
+        for (Constructor constructor : aClass.getDeclaredConstructors()) {
+            if (Modifier.isPrivate(constructor.getModifiers())) {
                 continue;
             }
-
             hasConstructors = true;
 
             result.append("public ")
@@ -89,7 +82,6 @@ public class Implementor implements Impler {
                 result.append(parameter.getParameterizedType().getTypeName())
                         .append(" ")
                         .append(parameter.getName());
-
                 params.append(parameter.getName());
 
                 if (countParam > counter++) {
@@ -114,9 +106,9 @@ public class Implementor implements Impler {
                     .append("}\n");
         }
 
-        /*if(!aClass.isInterface() && !hasConstructors) {
+        if (!hasConstructors && !aClass.isInterface()) {
             throw new ImplerException("Has not public constructors");
-        }*/
+        }
     }
 
     private void setMethods(Class<?> aClass, StringBuilder result) {
@@ -146,7 +138,7 @@ public class Implementor implements Impler {
 
             int modifiers = method.getModifiers();
 
-            if (Modifier.isAbstract(modifiers) || Modifier.isFinal(modifiers) || Modifier.isPrivate(modifiers)
+            if (!Modifier.isAbstract(modifiers) || Modifier.isFinal(modifiers) || Modifier.isPrivate(modifiers)
                     || Modifier.isStatic(modifiers) || methodId.contains(getMethodId(method))) {
                 continue;
             }
