@@ -1,9 +1,10 @@
 package ru.ifmo.ctddev.solutions.implementor;
 
-import com.sun.istack.internal.Nullable;
-import info.kgeorgiy.java.advanced.implementor.Impler;
 import info.kgeorgiy.java.advanced.implementor.ImplerException;
+import info.kgeorgiy.java.advanced.implementor.JarImpler;
 
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -14,13 +15,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
 
 /**
  * Generate an implementation of passed class and writes It to the specified directory
  *
  * @author andrey
  */
-public class Implementor implements Impler {
+public class Implementor implements JarImpler {
     /**
      * The name suffix of the generated class implementation
      */
@@ -264,7 +267,6 @@ public class Implementor implements Impler {
         result.append(CLOSE_BRACE + NEXT_LINE);
     }
 
-    @Nullable
     private String getDefaultParameterForType(Class<?> returnType) {
         if (returnType != void.class) {
             String returnInstance = "null";
@@ -300,7 +302,62 @@ public class Implementor implements Impler {
         String destDirName = path + File.separator + aClass.getPackage().getName().replace(".", File.separator);
 
         Files.createDirectories(Paths.get(destDirName));
+        System.out.println(result.toString());
         Files.write(Paths.get(destDirName + File.separator + aClass.getSimpleName() + IMPL_SUFFIX + ".java"),
-                result.toString().getBytes());
+                result.toString().getBytes("UTF-8"));
+    }
+
+    /**
+     *
+     * @param token type token to create implementation for.
+     * @param jarFile target <tt>.jar</tt> file.
+     * @throws ImplerException
+     * If the token can not be generated in the jar-file
+     */
+    @Override
+    public void implementJar(Class<?> token, Path jarFile) throws ImplerException {
+        Path root = Paths.get(jarFile.toString().substring(0, jarFile.toString().lastIndexOf(File.separator)));
+
+        JavaCompiler javaCompiler = ToolProvider.getSystemJavaCompiler();
+
+        List<String> args = new ArrayList<>();
+        args.add("-cp");
+        args.add(System.getProperty("java.class.path"));
+
+        String canonicalName = token.getCanonicalName();
+        String packagePath = canonicalName.substring(0, canonicalName.lastIndexOf('.')).replace(".", File.separator);
+        args.add(root.toString() + File.separator + packagePath + File.separator + token.getSimpleName() + "Impl.java");
+
+        if (javaCompiler == null) {
+            throw new ImplerException("Java compiler hasn't been found");
+        }
+
+        javaCompiler.run(null, null, null, args.toArray(new String[args.size()]));
+
+        String pathToJar = packagePath + File.separator + token.getSimpleName() + "Impl.class";
+
+        try (JarOutputStream jarOutputStream = new JarOutputStream(Files.newOutputStream(jarFile))) {
+            jarOutputStream.putNextEntry(new JarEntry(pathToJar.replace(File.separator, "/"))); //
+            Files.copy(root.resolve(pathToJar), jarOutputStream);
+        } catch (IOException ex) {
+            throw new ImplerException(ex.getMessage());
+        }
+    }
+
+    /**
+     * Entry point
+     * @param args program arguments
+     */
+    public static void main(String[] args) {
+        if (args.length < 2) {
+            System.out.println("Usage: java -jar Implementor.jar [token] [path to jar]");
+            return;
+        }
+
+        try {
+            new Implementor().implementJar(Class.forName(args[0]), Paths.get(args[1]));
+        } catch (ClassNotFoundException | ImplerException ex) {
+            ex.printStackTrace();
+        }
     }
 }
