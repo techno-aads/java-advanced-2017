@@ -2,6 +2,7 @@ package ru.ifmo.ctddev.solutions.walk;
 
 import java.io.*;
 import java.nio.file.*;
+import java.util.ArrayList;
 
 import static ru.ifmo.ctddev.solutions.walk.RecursiveWalk.getPath;
 

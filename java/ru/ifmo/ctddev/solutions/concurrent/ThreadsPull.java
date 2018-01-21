@@ -1,3 +1,5 @@
+package ru.ifmo.ctddev.solutions.concurrent;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
