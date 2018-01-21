@@ -1,13 +1,13 @@
 Manifest-Version: 1.0
 Main-Class: Main-Class: ru.ifmo.ctddev.solutions.implementor.Implementor
 
-Сборка классов: 
+Г‘ГЎГ®Г°ГЄГ  ГЄГ«Г Г±Г±Г®Гў: 
 javac -d . info/kgeorgiy/java/advanced/implementor/Impler.java info/kgeorgiy/java/advanced/implementor/JarImpler.java info/kgeorgiy/java/advanced/implementor/ImplerException.java ru/ifmo/ctddev/solutions/implementor/Implementor.java
 
-Собрать jar: 
+Г‘Г®ГЎГ°Г ГІГј jar: 
 jar cfm Implementor.jar MANIFEST.MF info/kgeorgiy/java/advanced/implementor/Impler.class info/kgeorgiy/java/advanced/implementor/JarImpler.class info/kgeorgiy/java/advanced/implementor/ImplerException.class ru/ifmo/ctddev/solutions/implementor/Implementor.class
 
-Пояснение: Через скрипт не получилось. Выдает следующие проблемы: PS A:\Users\AST\IdeaProjects\Solutions\src> java -jar .\Implementor.jar
+ГЏГ®ГїГ±Г­ГҐГ­ГЁГҐ: Г—ГҐГ°ГҐГ§ Г±ГЄГ°ГЁГЇГІ Г­ГҐ ГЇГ®Г«ГіГ·ГЁГ«Г®Г±Гј. Г‚Г»Г¤Г ГҐГІ Г±Г«ГҐГ¤ГіГѕГ№ГЁГҐ ГЇГ°Г®ГЎГ«ГҐГ¬Г»: PS A:\Users\AST\IdeaProjects\Solutions\src> java -jar .\Implementor.jar
 Error: A JNI error has occurred, please check your installation and try again
 Exception in thread "main" java.lang.NoClassDefFoundError: ru/ifmo/ctddev/solutions/implementor/Implementor$UnicodeFilterWriter
         at java.lang.Class.getDeclaredMethods0(Native Method)
@@ -24,4 +24,4 @@ Caused by: java.lang.ClassNotFoundException: ru.ifmo.ctddev.solutions.implemento
         at java.lang.ClassLoader.loadClass(Unknown Source)
         ... 7 more
 
-Из среды (Idea) - без проблем. 
+Г€Г§ Г±Г°ГҐГ¤Г» (Idea) - ГЎГҐГ§ ГЇГ°Г®ГЎГ«ГҐГ¬. 
