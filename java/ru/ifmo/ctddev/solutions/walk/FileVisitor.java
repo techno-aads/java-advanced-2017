@@ -1,4 +1,4 @@
-package ru.ifmo.ctddev.solution.walk;
+package ru.ifmo.ctddev.solutions.walk;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
