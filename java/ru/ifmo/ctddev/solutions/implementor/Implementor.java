@@ -32,6 +32,27 @@ public class Implementor implements JarImpler {
     private boolean isClass;
     private File outputJavaFile;
 
+    public static void main(String[] args) {
+        try {
+            if (args.length < 2) {
+                throw new IllegalAccessException("Wrong number of arguments");
+            }
+            if (args.length == 2) {
+                new Implementor().implement(Class.forName(args[0]), Paths.get(args[1]));
+            } else {
+                Class<?> clazz = Class.forName(args[0]);
+                Path path = Paths.get(args[1]);
+                Implementor impler = new Implementor();
+                impler.implement(clazz, path);
+                impler.implementJar(clazz, path);
+            }
+        } catch (ClassNotFoundException | ImplerException e) {
+            System.out.println("Implementation error.");
+        } catch (IllegalAccessException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
     @Override
     public void implement(Class<?> clazz, Path path) throws ImplerException {
         try {
