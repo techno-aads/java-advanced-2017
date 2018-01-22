@@ -1,4 +1,4 @@
-package ru.ifmo.ctddev.chernyatskiy.Implementor;
+package ru.ifmo.ctddev.solutions.implementor
 
 import info.kgeorgiy.java.advanced.implementor.Impler;
 import info.kgeorgiy.java.advanced.implementor.ImplerException;
