@@ -21,17 +21,49 @@ import java.util.jar.JarOutputStream;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+/**
+ * Class which implements given interfaces or extends given classes. Also creates jar files with this files.
+ */
 public class Implementor implements JarImpler {
 
+    /**
+     * Class for which the implementation is created
+     */
     private Class<?> clazz;
+    /**
+     * Name of class for which the implementation is created
+     */
     private String className;
+    /**
+     * Array of methods of class or interface
+     */
     private Method[] methods;
+    /**
+     * Package of interface or class
+     */
     private String packageName;
+    /**
+     * Class comparator
+     */
     private Comparator<Class<?>> CLASS_COMPARATOR = Comparator.comparing(Class::getSimpleName);
+    /**
+     * Set of imports in implemented class
+     */
     private Set<Class<?>> imports;
+    /**
+     * Field indicates if implementation extends class
+     */
     private boolean isClass;
+    /**
+     * Output jar file
+     */
     private File outputJavaFile;
 
+    /**
+     * Main method. Used to run created jar file. 2 params creates only implementation, more params creates Jar files
+     * for implementations.
+     * @param args array of arguments.
+     */
     public static void main(String[] args) {
         try {
             if (args.length < 2) {
@@ -53,6 +85,13 @@ public class Implementor implements JarImpler {
         }
     }
 
+    /**
+     * Generates class or interface implementation and writes it in java file.
+     *
+     * @param clazz {@link Class} class or interface to create implementation for.
+     * @param path {@link Path} output directory.
+     * @throws ImplerException if appeared exceptions during implementation.
+     */
     @Override
     public void implement(Class<?> clazz, Path path) throws ImplerException {
         try {
@@ -77,6 +116,11 @@ public class Implementor implements JarImpler {
         }
     }
 
+    /**
+     * Check possibility to create implementation
+     * @param clazz {@link Class} class for which need create implementation
+     * @throws ImplerException if implementation impossible to create.
+     */
     private void validate(Class<?> clazz) throws ImplerException {
         if (clazz.isPrimitive()) {
             throw new ImplerException("Type is a primitive.");
@@ -101,6 +145,10 @@ public class Implementor implements JarImpler {
         }
     }
 
+    /**
+     * Extract base class params
+     * @param currentInterface {@link Class} class for which need create implementation with extracted params.
+     */
     private void extractClassParams(Class<?> currentInterface) {
         this.clazz = currentInterface;
         this.className = currentInterface.getSimpleName();
@@ -113,16 +161,30 @@ public class Implementor implements JarImpler {
         }
     }
 
+    /**
+     * Base method to create implementation for interface
+     * @param currentInterface {@link Class} interface for which implementation created
+     * @return {@link String} String with implementation.
+     */
     private String getImplementedClass(Class<?> currentInterface) {
         extractClassParams(currentInterface);
         return generateHeader() + generateBody() + "}";
     }
 
+    /**
+     * Base method to create extended class for class
+     * @param currentClass {@link Class} class which extended
+     * @return {@link String} String with extended class.
+     */
     private String getExtendedClass(Class<?> currentClass) {
         extractClassParams(currentClass);
         return generateHeader() + generateClassBody() + "}";
     }
 
+    /**
+     * Generates header for class
+     * @return {@link String} String with implemented header
+     */
     private String generateHeader() {
         StringBuilder headerStruct = new StringBuilder();
         headerStruct
@@ -140,6 +202,10 @@ public class Implementor implements JarImpler {
         return headerStruct.toString();
     }
 
+    /**
+     * Generates body for implemented class
+     * @return {@link String} String with body of implemented class
+     */
     private String generateBody() {
         StringBuilder body = new StringBuilder();
         for (Method m : methods) {
@@ -149,6 +215,10 @@ public class Implementor implements JarImpler {
 
     }
 
+    /**
+     * Generates body for extended class
+     * @return {@link String} String with body of extended class
+     */
     private String generateClassBody() {
         StringBuilder classBody = new StringBuilder();
         classBody.append(implementConstructors());
@@ -182,14 +252,18 @@ public class Implementor implements JarImpler {
         return classBody.toString();
     }
 
+    /**
+     * Generates realization for method
+     * @param method {@link Method} method which need to generate
+     * @return {@link String} String with method realization
+     */
     private String implementMethod(Method method) {
         StringBuilder methodStruct = new StringBuilder();
         methodStruct
                 .append("    public ")
                 .append(method.getReturnType().getSimpleName())
                 .append(" ")
-                .append(method.getName())
-                .append("(" + methodParams(method) + ") {\n");
+                .append(method.getName()).append("(").append(methodParams(method)).append(") {\n");
 
         Class<?> returnType = method.getReturnType();
         if (!returnType.equals(Void.TYPE)) {
@@ -213,7 +287,11 @@ public class Implementor implements JarImpler {
         return methodStruct.toString();
     }
 
-    public String implementConstructors() {
+    /**
+     * Generates constructors for extended class
+     * @return {@link String} String with generated constructors
+     */
+    private String implementConstructors() {
         StringBuilder constructorStruct = new StringBuilder();
         Constructor[] constructors = clazz.getDeclaredConstructors();
         for (Constructor constructor : constructors) {
@@ -268,7 +346,12 @@ public class Implementor implements JarImpler {
         return constructorStruct.toString();
     }
 
-    String methodParams(Method m) {
+    /**
+     * Extract method params
+     * @param m {@link Method} method in which parameters are extracted
+     * @return String with extracted method parameters
+     */
+    private String methodParams(Method m) {
         Class<?>[] args = m.getParameterTypes();
 
         return IntStream.range(0, args.length)
@@ -292,16 +375,29 @@ public class Implementor implements JarImpler {
         );
     }
 
-    void addImportsFrom(Method method) {
+    /**
+     * Extract method imports
+     * @param method {@link Method} method for which need to extract imports
+     */
+    private void addImportsFrom(Method method) {
         addImports(method.getReturnType());
         addImportsFrom((Executable) method);
     }
 
-    void addImportsFrom(Executable executable) {
+    /**
+     * Extract additional method imports
+     * @param executable {@link Executable} for extraction
+     */
+    private void addImportsFrom(Executable executable) {
         addImports(executable.getParameterTypes());
         addImports(executable.getExceptionTypes());
     }
 
+    /**
+     * Validates if class need to be imported
+     * @param aClass {@link Class} validated class
+     * @return true if class need to import
+     */
     private boolean validImport(Class<?> aClass) {
         if (aClass == null) {
             return false;
@@ -314,6 +410,11 @@ public class Implementor implements JarImpler {
         return !p.getName().equals("java.lang") && !p.equals(clazz.getPackage());
     }
 
+    /**
+     * Class to extract only necessary types
+     * @param aClass {@link Class} type to extract data
+     * @return {@link Class} extracted type or null
+     */
     private Class<?> extractType(Class<?> aClass) {
         if (aClass.isArray()) {
             aClass = aClass.getComponentType();
@@ -321,6 +422,13 @@ public class Implementor implements JarImpler {
         return aClass.isPrimitive() ? null : aClass;
     }
 
+    /**
+     * Helper method to extract output file and additional data
+     * @param clazz {@link Class} class for which need generate implementation
+     * @param path {@link Path} path where generated file need save
+     * @return {@link File} file for writer
+     * @throws IOException if passed wrong parameters
+     */
     private File getOutputFile(Class<?> clazz, Path path) throws IOException {
         String classFileName = clazz.getSimpleName() + "Impl.java";
         String[] packages = clazz.getPackage().getName().split("\\.");
@@ -330,6 +438,12 @@ public class Implementor implements JarImpler {
         return outputPath.toFile();
     }
 
+    /**
+     * Crates jar files with implemented files
+     * @param token {@link Class} type token to create implementation for
+     * @param jarFile {@link Path} path where generated file need save
+     * @throws ImplerException if appeared exceptions during implementation
+     */
     @Override
     public void implementJar(Class<?> token, Path jarFile) throws ImplerException {
         Path directoryPath;
@@ -343,6 +457,13 @@ public class Implementor implements JarImpler {
         compileAndPackToJar(token, directoryPath, jarFile);
     }
 
+    /**
+     * Method which compiles and packs created implementation to Jar file
+     * @param clazz {@link Class} class for which implementation generated
+     * @param fileDirectory {@link Path} path to directory with generated files
+     * @param jarFile {@link Path} path to generated jar file
+     * @throws ImplerException when exceptions during compiling or saving to archive
+     */
     private void compileAndPackToJar(Class clazz, Path fileDirectory, Path jarFile) throws ImplerException {
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         List<String> args = new ArrayList<>();
