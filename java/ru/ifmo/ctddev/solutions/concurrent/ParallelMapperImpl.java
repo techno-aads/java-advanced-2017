@@ -1,4 +1,4 @@
-package ru.ifmo.ctddev.chernyatskiy.IterativeParallelism;
+package ru.ifmo.ctddev.solutions.concurrent;
 
 import info.kgeorgiy.java.advanced.mapper.ParallelMapper;
 
