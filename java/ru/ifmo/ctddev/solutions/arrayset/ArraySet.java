@@ -58,24 +58,8 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E>
     private List<E> addCollection(List<E> elements, Comparator<? super E> comparator)
     {
         elements.sort(comparator);
-
-        List<E> uniqueElements = new ArrayList<>();
-        Iterator<E> iterator = elements.iterator();
-        if (iterator.hasNext())
-        {
-            E prev = iterator.next();
-            uniqueElements.add(prev);
-            while (iterator.hasNext())
-            {
-                E current = iterator.next();
-                if (comparator.compare(prev, current) != 0)
-                {
-                    uniqueElements.add(current);
-                }
-                prev = current;
-            }
-        }
-        return uniqueElements;
+        SortedSet<E> set =  new TreeSet<E>(elements);
+        return new ArrayList<>(set);
     }
 
     @Override
@@ -130,7 +114,7 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E>
     {
         List<E> newArray = new ArrayList<>(elementsData);
         reverse(newArray);
-        return new ru.ifmo.ctddev.solutions.arrayset.ArraySet<>(newArray, reverseOrder(comparator));
+        return new ArraySet<>(newArray, reverseOrder(comparator));
     }
 
     @Override
@@ -156,7 +140,7 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E>
                 && (fromPosition >= 0
                 && toPosition >= 0))
         {
-            return new ru.ifmo.ctddev.solutions.arrayset.ArraySet<>(emptyList(), comparator);
+            return new ArraySet<>(emptyList(), comparator);
         }
 
         if (!b && fromPosition >= 0)
@@ -167,7 +151,7 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E>
         {
             toIndex++;
         }
-        return new ru.ifmo.ctddev.solutions.arrayset.ArraySet<>(elementsData.subList(fromIndex, toIndex), comparator);
+        return new ArraySet<>(elementsData.subList(fromIndex, toIndex), comparator);
     }
 
     @Override
@@ -175,7 +159,7 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E>
     {
         int position = binarySearch(elementsData, e, comparator);
         int actualPosition = position < 0 ? (-position -1) : b ? position + 1 : position;
-        return new ru.ifmo.ctddev.solutions.arrayset.ArraySet<>(elementsData.subList(0, actualPosition), comparator);
+        return new ArraySet<>(elementsData.subList(0, actualPosition), comparator);
     }
 
     @Override
@@ -183,7 +167,7 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E>
     {
         int position = binarySearch(elementsData, e, comparator);
         int actualPosition = position < 0 ? (-position -1) : !b ? position + 1 : position;
-        return new ru.ifmo.ctddev.solutions.arrayset.ArraySet<>(elementsData.subList(actualPosition, size()), comparator);
+        return new ArraySet<>(elementsData.subList(actualPosition, size()), comparator);
     }
 
     @SuppressWarnings("unchecked")
@@ -203,21 +187,21 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E>
     {
         int from = search(fromElement);
         int to = search(toElement);
-        return new ru.ifmo.ctddev.solutions.arrayset.ArraySet<>(elementsData.subList(from, to), comparator);
+        return new ArraySet<>(elementsData.subList(from, to), comparator);
     }
 
     @Override
     public SortedSet<E> headSet(E toElement)
     {
         int to = search(toElement);
-        return new ru.ifmo.ctddev.solutions.arrayset.ArraySet<>(elementsData.subList(0, to), comparator);
+        return new ArraySet<>(elementsData.subList(0, to), comparator);
     }
 
     @Override
     public SortedSet<E> tailSet(E fromElement)
     {
         int from = search(fromElement);
-        return new ru.ifmo.ctddev.solutions.arrayset.ArraySet<>(elementsData.subList(from, elementsData.size()), comparator);
+        return new ArraySet<>(elementsData.subList(from, elementsData.size()), comparator);
     }
 
     @Override
