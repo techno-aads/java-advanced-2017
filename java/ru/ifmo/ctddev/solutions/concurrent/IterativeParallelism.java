@@ -83,10 +83,14 @@ public class IterativeParallelism implements ListIP {
 
     private <T, R, F> F executeFunctions(int threads, List<T> values, Function<List<T>, List<R>> taskFunction, Function<List<R>, F> mergeFunction) {
         if (parallelMapper != null) {
-            List<List<T>> tasks = splitValues(threads, values);
+            List<List<T>> tasks = splitTasks(threads, values);
             try {
                 List<List<R>> results = parallelMapper.map(taskFunction, tasks);
-                return mergeFunction.apply(results.stream().flatMap(Collection::stream).collect(toList()));
+                List<R> flattenedResults = results
+                        .stream()
+                        .flatMap(Collection::stream)
+                        .collect(toList());
+                return mergeFunction.apply(flattenedResults);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -97,7 +101,7 @@ public class IterativeParallelism implements ListIP {
         return mergeFunction.apply(results);
     }
 
-    private <T> List<List<T>> splitValues(int threads, List<T> values) {
+    private <T> List<List<T>> splitTasks(int threads, List<T> values) {
         int listSize = values.size();
         int actualThreads = Math.min(Math.min(MAX_THREADS, threads), listSize);
         int batchSize = listSize / actualThreads;
@@ -112,17 +116,10 @@ public class IterativeParallelism implements ListIP {
     }
 
     private <T, R> List<Task<T, R>> splitTasks(int threads, List<T> values, Function<List<T>, R> function) {
-        int listSize = values.size();
-        int actualThreads = Math.min(Math.min(MAX_THREADS, threads), listSize);
-        int batchSize = listSize / actualThreads;
-
-        List<Task<T, R>> tasks = new ArrayList<>();
-        for (int i = 0; i < actualThreads; i++) {
-            int to = (i + 1) == actualThreads ? listSize : (i + 1) * batchSize;
-            tasks.add(new Task(values.subList(i * batchSize, to), function));
-        }
-
-        return tasks;
+        return splitTasks(threads, values)
+                .stream()
+                .map(batch -> new Task<T, R>(batch, function))
+                .collect(toList());
     }
 
     private <T, R> List<R> runTasks(List<Task<T, List<R>>> tasks) {
