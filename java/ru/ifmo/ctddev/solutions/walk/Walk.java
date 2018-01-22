@@ -22,67 +22,6 @@ public class Walk {
         return h;
     }
 
-    public static int hashCodeForFile(String filename) throws IOException {
-        FileInputStream input = new FileInputStream(filename);
-        int hval = FNV_32_INIT;
-        int bufferSize = BUFFER_SIZE;
-        byte[] buffer = new byte[BUFFER_SIZE];
-        while (input.available() > 0) {
-            if (input.available() < BUFFER_SIZE)
-                bufferSize = input.available();
-            input.read(buffer, 0, bufferSize);
-            for (int i = 0; i < bufferSize; i++) {
-                hval = (hval * 0x01000193) ^ (buffer[i] & 0xff);
-            }
-        }
-        return hval;
-    }
-
-    public static int hashCodeForFileTest(String filename) throws IOException {
-        FileInputStream input = new FileInputStream(filename);
-        int hval = FNV_32_INIT;
-        int bufferSize = input.available();
-        byte[] buffer = new byte[bufferSize];
-        input.read(buffer);
-            for (int i = 0; i < bufferSize; i++) {
-                hval = (hval * 0x01000193) ^ (buffer[i] & 0xff);
-            }
-        return hval;
-    }
-
-    public static int hashCodeForFile(File file) throws IOException {
-        FileInputStream input = new FileInputStream(file);
-        int hval = FNV_32_INIT;
-        int bufferSize = BUFFER_SIZE;
-        byte[] buffer = new byte[BUFFER_SIZE];
-        while (input.available() > 0) {
-            if (input.available() < BUFFER_SIZE)
-                bufferSize = input.available();
-            input.read(buffer, 0, bufferSize);
-            for (int i = 0; i < bufferSize; i++) {
-                hval = (hval * 0x01000193) ^ (buffer[i] & 0xff);
-            }
-        }
-        return hval;
-    }
-
-    public static List<String> recursiveHashCode(File directory) throws IOException {
-        File[] fileList = directory.listFiles();
-        List<String> result = new ArrayList<String>();
-        for(File f : fileList) {
-            if(f.isFile()) {
-                String s = Integer.toHexString(hashCodeForFile(f));
-                for (int t = s.length(); t < 8; t++)
-                    s = "0" + s;
-                result.add(s + " " + f.getPath());
-            }
-            else {
-                result.addAll(recursiveHashCode(f));
-            }
-        }
-        return result;
-    }
-
     public static List<String> readFromFile(String filename) throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader(filename));
         String line;
