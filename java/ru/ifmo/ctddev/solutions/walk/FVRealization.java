@@ -1,3 +1,5 @@
+package ru.ifmo.ctddev.solutions.walk;
+
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
