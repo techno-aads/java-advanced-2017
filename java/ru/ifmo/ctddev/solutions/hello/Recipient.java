@@ -24,7 +24,7 @@ public class Recipient implements Runnable {
                 receive();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            // do nothing
         }
     }
 

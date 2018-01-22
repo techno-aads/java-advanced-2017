@@ -46,7 +46,7 @@ public class HelloUDPClient implements HelloClient {
                     }
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                // do nothing
             }
         }
     }
@@ -60,7 +60,6 @@ public class HelloUDPClient implements HelloClient {
             byte[] bytes = Arrays.copyOfRange(receivePacket.getData(), 0, receivePacket.getLength());
             return new String(bytes);
         } catch (SocketTimeoutException e) {
-            System.out.println("WARN: SocketTimeoutException -  " + e.getMessage());
             return "";
         }
     }

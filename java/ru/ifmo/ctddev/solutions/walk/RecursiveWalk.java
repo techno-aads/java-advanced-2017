@@ -56,7 +56,7 @@ public class RecursiveWalk {
         }
     }
 
-    private String getHash(Path inPath) throws IOException {
+    private String getHash(Path inPath) {
         int hash = 0x811c9dc5;
         int size = 1024;
         try (FileInputStream inputStream = new FileInputStream(inPath.toFile())) {

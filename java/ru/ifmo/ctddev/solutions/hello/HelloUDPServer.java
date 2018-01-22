@@ -28,7 +28,7 @@ public class HelloUDPServer implements HelloServer {
                     .collect(Collectors.toList());
             threadList.forEach(Thread::start);
         } catch (IOException e) {
-            e.printStackTrace();
+            // do nothing
         }
     }
 

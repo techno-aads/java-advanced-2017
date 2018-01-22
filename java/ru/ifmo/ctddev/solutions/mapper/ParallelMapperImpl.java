@@ -22,7 +22,7 @@ public class ParallelMapperImpl implements ParallelMapper {
     }
 
     @Override
-    public <T, R> List<R> map(Function<? super T, ? extends R> function, List<? extends T> list) throws InterruptedException {
+    public <T, R> List<R> map(Function<? super T, ? extends R> function, List<? extends T> list) {
         List<CompletableFuture<? extends R>> completableFutureList = list.stream()
                 .map(item -> CompletableFuture.supplyAsync(() -> function.apply(item), executorService))
                 .collect(Collectors.<CompletableFuture<? extends R>>toList());
