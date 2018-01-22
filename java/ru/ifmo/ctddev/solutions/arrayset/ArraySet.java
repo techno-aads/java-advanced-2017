@@ -123,7 +123,7 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E>
     }
 
     @Override
-    public NavigableSet<E> subSet(E e, boolean b, E e1, boolean b1)
+	public NavigableSet<E> subSet(E e, boolean b, E e1, boolean b1) throws IllegalArgumentException
     {
         int fromPosition = binarySearch(elementsData, e, comparator);
         int fromIndex = fromPosition < 0 ? (-fromPosition -1) : fromPosition;
