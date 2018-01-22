@@ -81,7 +81,7 @@ public class IterativeParallelism implements ListIP {
                 Function.identity());
     }
 
-    private <T, R, F> F executeFunctions(int threads, List<T> values, Function<List<T>, List<R>> taskFunction, Function<List<R>, F> mergeFunction) {
+    private <T, R, F> F executeFunctions(int threads, List<T> values, Function<List<T>, List<R>> taskFunction, Function<List<R>, F> mergeFunction) throws InterruptedException {
         if (parallelMapper != null) {
             List<List<T>> tasks = splitTasks(threads, values);
             try {
@@ -93,6 +93,7 @@ public class IterativeParallelism implements ListIP {
                 return mergeFunction.apply(flattenedResults);
             } catch (InterruptedException e) {
                 e.printStackTrace();
+                throw e;
             }
         }
 
@@ -122,13 +123,14 @@ public class IterativeParallelism implements ListIP {
                 .collect(toList());
     }
 
-    private <T, R> List<R> runTasks(List<Task<T, List<R>>> tasks) {
+    private <T, R> List<R> runTasks(List<Task<T, List<R>>> tasks) throws InterruptedException {
         tasks.forEach(Thread::start);
         for (Task task : tasks) {
             try {
                 task.join();
             } catch (InterruptedException e) {
                 e.printStackTrace();
+                throw e;
             }
         }
         return tasks.stream()
