@@ -12,6 +12,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.JarOutputStream;
@@ -20,6 +21,35 @@ import java.util.zip.ZipEntry;
 
 public class Implementor implements JarImpler, Impler {
     private static final String NEW_LINE = System.lineSeparator();
+    public static void main(String[] args) {
+
+        if (args.length < 2 || args.length > 3) {
+            System.out.println("Invalid number of arguments");
+            System.exit(1);
+        }
+        if ((args.length == 3)&&(!"-jar".equals(args[0]))) {
+            System.out.println("Incorrect arguments");
+            System.exit(1);
+        }
+        String className = "";
+        try {
+            Implementor  i = new Implementor();
+
+            if (args.length == 3) {
+                className = args[1];
+                i.implementJar(Class.forName(className), Paths.get(args[2]));
+            } else {
+                className = args[0];
+                i.implement(Class.forName(className), Paths.get(args[1]));
+            }
+        } catch (ImplerException e) {
+            System.out.println(e.getMessage());
+            System.exit(1);
+        } catch (ClassNotFoundException e) {
+            System.out.println("Класс не найден: " + className);
+            System.exit(1);
+        }
+    }
 
     @Override
     public void implementJar(Class<?> token, Path jarFile) throws ImplerException {
