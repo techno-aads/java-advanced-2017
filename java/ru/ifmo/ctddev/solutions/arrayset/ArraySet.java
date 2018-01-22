@@ -189,12 +189,24 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E>{
      *  The returned set is backed by this set, so changes in the returned set are reflected in this set, and vice-versa.
      *  The returned set supports all optional set operations that this set supports.*/
     @Override
-    public NavigableSet<E> subSet(E fromElement, boolean fromInclusive, E toElement, boolean toInclusive) {
+    public NavigableSet<E> subSet(E fromElement, boolean fromInclusive, E toElement, boolean toInclusive) throws IllegalArgumentException {
+        int fromPos = indexOf(fromElement);
+        int fromIndex = fromPos < 0 ? (-fromPos -1) : fromPos;
+
+        int toPos = indexOf(toElement);
+        int toIndex = toPos < 0 ? (-toPos -1) : toPos;
+
+        if (fromIndex > toIndex)
+        {
+            throw new IllegalArgumentException("fromElement > toElement");
+        }
+
         return headSet(toElement, toInclusive).tailSet(fromElement, fromInclusive);
     }
 
     @Override
     public SortedSet<E> subSet(E fromElement, E toElement) {
+
         return subSet(fromElement, true, toElement, false);
     }
 
@@ -244,7 +256,6 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E>{
 
     @Override
     public NavigableSet<E> descendingSet() {
-//        return new ArraySet<E>(this.m_DataReversed, this.m_Data, Collections.reverseOrder(m_Comparator), false);
         return new ArraySet<E>(this.m_DataReversed, this.m_Data, Collections.reverseOrder(m_Comparator), false);
     }
 
