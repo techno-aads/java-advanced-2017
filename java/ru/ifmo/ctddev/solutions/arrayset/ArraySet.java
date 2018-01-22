@@ -13,14 +13,18 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E>, Iter
     }
 
     @SuppressWarnings("unchecked")
+    public ArraySet(Collection<? extends E> collection) {
+        setComparator(comparator);
+        TreeSet<E> set = new TreeSet<>();
+        set.addAll(collection);
+        data.addAll(set);
+    }
+    @SuppressWarnings("unchecked")
     public ArraySet(Collection<? extends E> collection, Comparator<? super E> comparator) {
         setComparator(comparator);
         TreeSet<E> set = new TreeSet<>(this.comparator);
-        for (E i : collection) {
-            set.add(i);
-        }
-        for (E i : set)
-            data.add(i);
+        set.addAll(collection);
+        data.addAll(set);
     }
 
     private ArraySet(List<E> data, Comparator<? super E> comparator) {
