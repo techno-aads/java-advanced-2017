@@ -7,7 +7,6 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -29,7 +28,7 @@ public class IterativeParallelism implements ListIP {
         return executeFunctions(
                 threads,
                 values,
-                e -> Stream.of(e.stream().max(comparator).orElse(null)).collect(toList()),
+                e -> Collections.singletonList(e.stream().max(comparator).orElse(null)),
                 e -> e.stream().max(comparator).orElse(null));
     }
 
@@ -38,7 +37,7 @@ public class IterativeParallelism implements ListIP {
         return executeFunctions(
                 threads,
                 values,
-                e -> Stream.of(e.stream().min(comparator).orElse(null)).collect(toList()),
+                e -> Collections.singletonList(e.stream().min(comparator).orElse(null)),
                 e -> e.stream().min(comparator).orElse(null));
     }
 
@@ -46,7 +45,7 @@ public class IterativeParallelism implements ListIP {
     public <T> boolean all(int threads, List<? extends T> values, Predicate<? super T> predicate) throws InterruptedException {
         return executeFunctions(threads,
                 values,
-                ts -> Stream.of(ts.stream().allMatch(predicate)).collect(toList()),
+                ts -> Collections.singletonList(ts.stream().allMatch(predicate)),
                 ts -> ts.stream().allMatch(Predicate.isEqual(true)));
     }
 
@@ -54,7 +53,7 @@ public class IterativeParallelism implements ListIP {
     public <T> boolean any(int threads, List<? extends T> values, Predicate<? super T> predicate) throws InterruptedException {
         return executeFunctions(threads,
                 values,
-                ts -> Stream.of(ts.stream().anyMatch(predicate)).collect(toList()),
+                ts -> Collections.singletonList(ts.stream().anyMatch(predicate)),
                 ts -> ts.stream().anyMatch(Predicate.isEqual(true)));
     }
 
@@ -62,7 +61,7 @@ public class IterativeParallelism implements ListIP {
     public String join(int threads, List<?> values) throws InterruptedException {
         return executeFunctions(threads,
                 values,
-                ts -> Stream.of(ts.stream().map(Object::toString).collect(Collectors.joining(""))).collect(toList()),
+                ts -> Collections.singletonList(ts.stream().map(Object::toString).collect(Collectors.joining(""))),
                 results -> results.stream().collect(joining("")));
     }
 
