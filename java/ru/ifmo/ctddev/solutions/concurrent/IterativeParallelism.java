@@ -1,64 +1,68 @@
 package ru.ifmo.ctddev.solutions.concurrent;
 
 import info.kgeorgiy.java.advanced.concurrent.ListIP;
+import info.kgeorgiy.java.advanced.mapper.ParallelMapper;
 
 import java.util.*;
-import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 public class IterativeParallelism implements ListIP {
     private static final int MAX_THREADS = Runtime.getRuntime().availableProcessors();
+    private ParallelMapper parallelMapper;
 
-    private static <T> Function<List<List<T>>, List<T>> getFlatFunction() {
-        return ts -> ts.stream().flatMap(Collection::stream).collect(toList());
+    public IterativeParallelism() {
+
     }
 
-    private static <T> Function<List<T>, Boolean> getAllMatchFunction(Predicate<? super T> predicate) {
-        return ts -> ts.stream().allMatch(predicate);
-    }
-
-    private static <T> Function<List<T>, Boolean> getAnyMatchFunction(Predicate<? super T> predicate) {
-        return ts -> ts.stream().anyMatch(predicate);
+    public IterativeParallelism(ParallelMapper parallelMapper) {
+        this.parallelMapper = parallelMapper;
     }
 
     @Override
     public <T> T maximum(int threads, List<? extends T> values, Comparator<? super T> comparator) throws InterruptedException {
-        Function<List<T>, T> maxOrNull = e -> e.stream().max(comparator).orElse(null);
-        return executeFunctions(threads, values, maxOrNull, maxOrNull);
+        return executeFunctions(
+                threads,
+                values,
+                e -> Stream.of(e.stream().max(comparator).orElse(null)).collect(toList()),
+                e -> e.stream().max(comparator).orElse(null));
     }
 
     @Override
     public <T> T minimum(int threads, List<? extends T> values, Comparator<? super T> comparator) throws InterruptedException {
-        Function<List<T>, T> minOrNull = e -> e.stream().min(comparator).orElse(null);
-        return executeFunctions(threads, values, minOrNull, minOrNull);
+        return executeFunctions(
+                threads,
+                values,
+                e -> Stream.of(e.stream().min(comparator).orElse(null)).collect(toList()),
+                e -> e.stream().min(comparator).orElse(null));
     }
 
     @Override
     public <T> boolean all(int threads, List<? extends T> values, Predicate<? super T> predicate) throws InterruptedException {
         return executeFunctions(threads,
                 values,
-                getAllMatchFunction(predicate),
-                getAllMatchFunction(Predicate.isEqual(true)));
+                ts -> Stream.of(ts.stream().allMatch(predicate)).collect(toList()),
+                ts -> ts.stream().allMatch(Predicate.isEqual(true)));
     }
 
     @Override
     public <T> boolean any(int threads, List<? extends T> values, Predicate<? super T> predicate) throws InterruptedException {
         return executeFunctions(threads,
                 values,
-                getAnyMatchFunction(predicate),
-                getAnyMatchFunction(Predicate.isEqual(true)));
+                ts -> Stream.of(ts.stream().anyMatch(predicate)).collect(toList()),
+                ts -> ts.stream().anyMatch(Predicate.isEqual(true)));
     }
 
     @Override
     public String join(int threads, List<?> values) throws InterruptedException {
         return executeFunctions(threads,
                 values,
-                ts -> ts.stream().map(Object::toString).collect(Collectors.joining("")),
+                ts -> Stream.of(ts.stream().map(Object::toString).collect(Collectors.joining(""))).collect(toList()),
                 results -> results.stream().collect(joining("")));
     }
 
@@ -67,7 +71,7 @@ public class IterativeParallelism implements ListIP {
         return executeFunctions(threads,
                 values,
                 ts -> ts.stream().filter(predicate).collect(toList()),
-                getFlatFunction());
+                Function.identity());
     }
 
     @Override
@@ -75,16 +79,40 @@ public class IterativeParallelism implements ListIP {
         return executeFunctions(threads,
                 values,
                 ts -> ts.stream().map(f::apply).collect(toList()),
-                getFlatFunction());
+                Function.identity());
     }
 
-    private<T, R, F> F executeFunctions(int threads, List<? extends T> values, Function<List<T>, R> taskFunction, Function<List<R>, F> mergeFunction) {
-        List<Task<T, R>> tasks = calcTasks(threads, values, taskFunction);
+    private <T, R, F> F executeFunctions(int threads, List<T> values, Function<List<T>, List<R>> taskFunction, Function<List<R>, F> mergeFunction) {
+        if (parallelMapper != null) {
+            List<List<T>> tasks = splitValues(threads, values);
+            try {
+                List<List<R>> results = parallelMapper.map(taskFunction, tasks);
+                return mergeFunction.apply(results.stream().flatMap(Collection::stream).collect(toList()));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        List<Task<T, List<R>>> tasks = splitTasks(threads, values, taskFunction);
         List<R> results = runTasks(tasks);
         return mergeFunction.apply(results);
     }
 
-    private <T, R> List<Task<T, R>> calcTasks(int threads, List<? extends T> values, Function<List<T>, R> function) {
+    private <T> List<List<T>> splitValues(int threads, List<T> values) {
+        int listSize = values.size();
+        int actualThreads = Math.min(Math.min(MAX_THREADS, threads), listSize);
+        int batchSize = listSize / actualThreads;
+
+        List<List<T>> splitValues = new ArrayList<>();
+        for (int i = 0; i < actualThreads; i++) {
+            int to = (i + 1) == actualThreads ? listSize : (i + 1) * batchSize;
+            splitValues.add(values.subList(i * batchSize, to));
+        }
+
+        return splitValues;
+    }
+
+    private <T, R> List<Task<T, R>> splitTasks(int threads, List<T> values, Function<List<T>, R> function) {
         int listSize = values.size();
         int actualThreads = Math.min(Math.min(MAX_THREADS, threads), listSize);
         int batchSize = listSize / actualThreads;
@@ -98,7 +126,7 @@ public class IterativeParallelism implements ListIP {
         return tasks;
     }
 
-    private <T, R> List<R> runTasks(List<Task<T, R>> tasks) {
+    private <T, R> List<R> runTasks(List<Task<T, List<R>>> tasks) {
         tasks.forEach(Thread::start);
         for (Task task : tasks) {
             try {
@@ -109,6 +137,7 @@ public class IterativeParallelism implements ListIP {
         }
         return tasks.stream()
                 .map(Task::getResult)
+                .flatMap(Collection::stream)
                 .collect(Collectors.toList());
     }
 
