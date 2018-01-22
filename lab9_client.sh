@@ -1,0 +1,1 @@
+java -Dfile.encoding=UTF8 -cp "artifacts/*" info.kgeorgiy.java.advanced.hello.Tester client ru.ifmo.ctddev.solutions.hello.HelloUDPClient

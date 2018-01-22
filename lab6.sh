@@ -1,0 +1,1 @@
+java -Dfile.encoding=UTF8 -cp "artifacts/*" info.kgeorgiy.java.advanced.concurrent.Tester list ru.ifmo.ctddev.solutions.concurrent.IterativeParallelism

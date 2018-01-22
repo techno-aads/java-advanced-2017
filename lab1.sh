@@ -1,0 +1,1 @@
+java -Dfile.encoding=UTF8 -cp "artifacts/*" info.kgeorgiy.java.advanced.walk.Tester RecursiveWalk ru.ifmo.ctddev.solutions.walk.RecursiveWalk
