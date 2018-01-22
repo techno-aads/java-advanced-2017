@@ -1,3 +1,5 @@
+package ru.ifmo.ctddev.solutions.walk;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
