@@ -1,0 +1,1 @@
+java -cp artifacts/*:lib/* info.kgeorgiy.java.advanced.walk.Tester Walk ru.ifmo.ctddev.solutions.walk.RecursiveWalk
