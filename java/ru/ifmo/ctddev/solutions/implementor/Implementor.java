@@ -108,9 +108,9 @@ public class Implementor implements JarImpler {
             }
             writer.write(implementation);
             writer.close();
-            PrintWriter secondWriter = new PrintWriter(outputJavaFile.getName());
-            secondWriter.write(implementation);
-            secondWriter.close();
+//            PrintWriter secondWriter = new PrintWriter(outputJavaFile.getName());
+//            secondWriter.write(implementation);
+//            secondWriter.close();
         } catch (Exception e) {
             throw new ImplerException(e);
         }
