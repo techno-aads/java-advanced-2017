@@ -1,0 +1,2 @@
+"C:\Program Files\Java\jdk1.8.0_144\bin\jar.exe" -cf "C:\Users\Stas\IdeaProjects\Implementor\src\ru\ifmo\ctddev\chernyatskiy\Implementor\Implementor.jar" "C:\Users\Stas\IdeaProjects\Implementor\out\production\Implementor\ru\ifmo\ctddev\chernyatskiy\Implementor\Implementor.class" 
+pause 
