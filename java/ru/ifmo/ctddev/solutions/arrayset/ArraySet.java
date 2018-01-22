@@ -293,12 +293,7 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E>{
     public String toString(){
         return m_Data.toString();
     }
-
-    @Override
-    public boolean add(E e) {
-        throw new UnsupportedOperationException("Not Available");
-    }
-
+    
     @Override
     public boolean remove(Object o) {
         throw new UnsupportedOperationException("Not Available");
