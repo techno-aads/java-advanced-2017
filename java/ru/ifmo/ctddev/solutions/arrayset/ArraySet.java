@@ -175,7 +175,6 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E>{
             }
         }
 
-        //return new ArraySet<E>(data.subList(0, index), this.comparator);
         return new ArraySet<E>(m_Data.subList(0, index), m_DataReversed.subList(size() - index, size()), this.m_Comparator, this.m_DefaultOrder);
     }
 
@@ -223,11 +222,6 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E>{
     }
 
     @Override
-    public boolean isEmpty() {
-        return m_Data.isEmpty();
-    }
-
-    @Override
     public boolean contains(Object o) {
         return Collections.binarySearch(m_Data, (E) o, m_Comparator) >= 0;
     }
@@ -270,11 +264,6 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E>{
     }
 
     @Override
-    public Object[] toArray() {
-        return m_Data.toArray();
-    }
-
-    @Override
     public E first() {
         if (m_Data.size() != 0)
             return m_Data.get(0);
@@ -289,36 +278,6 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E>{
         else
             throw new NoSuchElementException();
     }
-
-    public String toString(){
-        return m_Data.toString();
-    }
-    
-    @Override
-    public boolean remove(Object o) {
-        throw new UnsupportedOperationException("Not Available");
-    }
-
-    @Override
-    public boolean addAll(Collection<? extends E> c) {
-        throw new UnsupportedOperationException("Not Available");
-    }
-
-    @Override
-    public boolean retainAll(Collection<?> c) {
-        throw new UnsupportedOperationException("Not Available");
-    }
-
-    @Override
-    public boolean removeAll(Collection<?> c) {
-        throw new UnsupportedOperationException("Not Available");
-    }
-
-    @Override
-    public void clear() {
-        throw new UnsupportedOperationException("Not Available");
-    }
-
 
     @Override
     public E pollFirst() {
