@@ -34,9 +34,9 @@ public class JarImplementor extends Implementor implements JarImpler {
     /**
      * @param root         {@link Path} - root path of directory
      * @param clazz        {@link Class} that needs to implement
-     * @param constructors {@link Collection<Constructor>} - collection of
+     * @param constructors {@link Collection} - collection of
      *                     constructors for implementation
-     * @param methods      {@link Collection<Method>} - collection of methods for
+     * @param methods      {@link Collection} - collection of methods for
      *                     implementation
      */
     @Override

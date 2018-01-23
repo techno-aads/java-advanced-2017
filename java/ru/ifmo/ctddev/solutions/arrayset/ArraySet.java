@@ -168,13 +168,21 @@ public class ArraySet<T> extends AbstractSet<T> implements NavigableSet<T> {
     public NavigableSet<T> subSet(final T fromElement,
                                   final boolean fromInclusive,
                                   final T toElement, final boolean toInclusive) {
-        int fromPosition = fromInclusive ? ceilingPosition(fromElement)
+        if (comparator.compare(fromElement, toElement) > 0) {
+            throw new IllegalArgumentException("fromElement greater than toElement");
+        }
+
+        int fromPosition = fromInclusive
+                ? ceilingPosition(fromElement)
                 : higherPosition(fromElement);
-        int toPosition =
-                toInclusive ? floorPosition(toElement) : lowerPosition(toElement);
+        int toPosition = toInclusive
+                ? floorPosition(toElement)
+                : lowerPosition(toElement);
+
         if (toPosition < 0 || fromPosition < 0) {
             return new ArraySet<>();
         }
+
         if (fromPosition > toPosition) {
             return new ArraySet<>();
         }
@@ -249,8 +257,7 @@ public class ArraySet<T> extends AbstractSet<T> implements NavigableSet<T> {
     public boolean contains(final Object o1) {
         T element = (T) o1;
         int position = binarySearch(element);
-        return position >= 0
-                && compareElements(element, list.get(position));
+        return position >= 0;
     }
 
     public boolean isEmpty() {

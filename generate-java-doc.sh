@@ -1,1 +1,1 @@
-javadoc -private -d out/java-doc -sourcepath src/main/java/ ru.ifmo.ctddev.solutions.implementor
+javadoc -private -d out/java-doc -classpath "./java;lib/*" ru.ifmo.ctddev.solutions.implementor

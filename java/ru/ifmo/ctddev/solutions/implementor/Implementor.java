@@ -108,6 +108,7 @@ public class Implementor implements Impler {
    * This method check that clazz may be extendable.
    *
    * @param clazz {@link Class} that needs to check extendable
+   * @throws ImplerException when class can't be implemented
    */
   private void checkExtendable(final Class clazz) throws ImplerException {
     if (clazz == Enum.class || clazz.isEnum()) {
@@ -135,7 +136,7 @@ public class Implementor implements Impler {
 
   /**
    * @param token - {@link Class}
-   * @return {@link List<String>} that contains all methods for token
+   * @return {@link List} that contains all methods for token
    */
 
   private Set<Method> getAllMethods(final Class token) {
@@ -210,6 +211,7 @@ public class Implementor implements Impler {
   /**
    * @param root {@link Path} - root path of directory
    * @param clazz {@link Class} that needs to implement
+   * @throws IOException when directory can't be created for {@code root}
    * @return {@link File} instance
    */
   private File resolveFile(final Path root, final Class clazz)
@@ -238,9 +240,9 @@ public class Implementor implements Impler {
   /**
    * @param root {@link Path} - root path of directory
    * @param clazz {@link Class} that needs to implement
-   * @param constructors {@link Collection<Constructor>} - collection of
+   * @param constructors {@link Collection} - collection of
    * constructors for implementation
-   * @param methods {@link Collection<Method>} - collection of methods for
+   * @param methods {@link Collection} - collection of methods for
    * implementation
    */
 
@@ -273,9 +275,9 @@ public class Implementor implements Impler {
 
   /**
    * @param clazz {@link Class} class that needs to implement
-   * @param constructors {@link Collections<Constructor>} - collection of
+   * @param constructors {@link Collections} - collection of
    * Constructors that need to implement
-   * @return {@link List<String>} list of constructors string
+   * @return {@link List} list of constructors string
    */
   private String constructorsToString(final Class clazz,
       final Collection<Constructor> constructors) {
@@ -336,9 +338,9 @@ public class Implementor implements Impler {
   }
 
   /**
-   * @param methods {@link Collection<Method>} - collection of methods that
+   * @param methods {@link Collection} - collection of methods that
    * needs to transform to list of Strings
-   * @return {@link List<String>}
+   * @return {@link List}
    */
   private String methodsToString(final Collection<Method> methods) {
     return methods.stream()
