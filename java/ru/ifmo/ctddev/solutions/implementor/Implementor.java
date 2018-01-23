@@ -14,10 +14,9 @@ import java.lang.reflect.Modifier;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
@@ -25,15 +24,15 @@ import java.util.zip.ZipEntry;
 
 /**
  * Implenting classs for interfaces {@link Impler} and {@link JarImpler}
- *  @see info.kgeorgiy.java.advanced.implementor.JarImpler
+ *  @see JarImpler
  *
  * @author AST
  * @version 1.0
  * @since 1.0
  */
 
-public class Implementor implements Impler, JarImpler {
-    
+public class Implementor implements JarImpler {
+
     /**
      * Class Name.
      */
@@ -62,6 +61,7 @@ public class Implementor implements Impler, JarImpler {
      */
     public static void main(String[] args)
     {
+        System.out.println("Hello!");
 
         if (args.length < 2)
         {
@@ -206,7 +206,7 @@ public class Implementor implements Impler, JarImpler {
         generateConstructors();
         generateMethods();
     }
-    
+
     /**
      * Implements from input Class or Interface.
      * The generated class will have suffix "Impl".
@@ -222,16 +222,16 @@ public class Implementor implements Impler, JarImpler {
         {
             throw new ImplerException("Input Class<> is not  class or interface");
         }
-        
+
         if (Modifier.isFinal(_Class.getModifiers()))
         {
             throw new ImplerException("Can't implement final class");
         }
-        
+
         ImplementedClass = _Class;
         ClassName = _Class.getSimpleName() + "Impl";
         Path path2ImplClass = null;
-        
+
         try
         {
             path2ImplClass = createDirectory(_Path, _Class, ".java");
@@ -253,7 +253,7 @@ public class Implementor implements Impler, JarImpler {
             throw new ImplerException(e);
         }
     }
-    
+
     /**
      * Generates the string <tt>"return x;"</tt>, where x is 0, false, null or empty string.
      * Chooses the variant to fit returning type of method.
@@ -457,29 +457,67 @@ public class Implementor implements Impler, JarImpler {
     }
 
     /**
-     * Implements the given class and creates Jar file.
-     * @param _Class the given class.
-     * @param _Path destination of Jar-Archive.
-     * @throws ImplerException Exceptions thrown by {@link Implementor#implement(Class, Path)}
-     * @see Implementor#implement(Class, Path)
+     * Crates jar files with implemented files
+     * @param token {@link Class} type token to create implementation for
+     * @param jarFile {@link Path} path where generated file need save
+     * @throws ImplerException if appeared exceptions during implementation
      */
-    public void implementJar(Class<?> _Class, Path _Path) throws ImplerException
-    {
-        try
-        {
-            if (_Path.getParent() != null)
-            {
-                Files.createDirectories(_Path.getParent());
-            }
-            Path Dir = Paths.get(System.getProperty("user.dir")).resolve("tmp");
-            Path filePath = Dir.relativize(createAndCompile(_Class, Dir));
-            createJarFile(Dir, filePath, _Path);
-            clean(Dir);
+    @Override
+    public void implementJar(Class<?> token, Path jarFile) throws ImplerException {
+        Path directoryPath;
+        if (jarFile.toString().lastIndexOf(File.separator) != -1) {
+            directoryPath = Paths.get(jarFile.toString().substring(0, jarFile.toString().lastIndexOf(File.separator)));
         }
-        catch (IOException e)
-        {
-            throw new ImplerException(e);
+        else{
+            directoryPath = Paths.get("").toAbsolutePath();
         }
+        implement(token, directoryPath);
+        try {
+            compileAndPackToJar(token, directoryPath, jarFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Method which compiles and packs created implementation to Jar file
+     * @param clazz {@link Class} class for which implementation generated
+     * @param fileDirectory {@link Path} path to directory with generated files
+     * @param jarFile {@link Path} path to generated jar file
+     * @throws ImplerException when exceptions during compiling or saving to archive
+     */
+    private void compileAndPackToJar(Class clazz, Path fileDirectory, Path jarFile) throws ImplerException, IOException {
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        List<String> args = new ArrayList<>();
+        args.add("-cp");
+        args.add(System.getProperty("java.class.path"));
+        args.add(getOutputFile(clazz, fileDirectory).toString());
+        int exitCode = compiler.run(null, null, null, args.toArray(new String[args.size()]));
+        if (exitCode != 0) throw new ImplerException("Compilation error");
+
+        String packagePath = clazz.getPackage().getName().replace(".", File.separator);
+        String classPath = packagePath + File.separator + clazz.getSimpleName() + "Impl.class";
+        try (JarOutputStream jarOutputStream = new JarOutputStream(Files.newOutputStream(jarFile))) {
+            jarOutputStream.putNextEntry(new JarEntry(classPath));
+            Files.copy(fileDirectory.resolve(classPath), jarOutputStream);
+        } catch (IOException e) {
+            throw new ImplerException("Packaging error");
+        }
+    }
+
+    /**
+     * Helper method to extract output file and additional data
+     * @param clazz {@link Class} class for which need generate implementation
+     * @param path {@link Path} path where generated file need save
+     * @return {@link File} file for writer
+     * @throws IOException if passed wrong parameters
+     */
+    private File getOutputFile(Class<?> clazz, Path path) throws IOException {
+        String classFileName = clazz.getSimpleName() + "Impl.java";
+        String[] packages = clazz.getPackage().getName().split("\\.");
+        Path outputPath = Paths.get(path.toAbsolutePath().toString(), packages);
+        outputPath = Paths.get(outputPath.toString(), classFileName);
+        return outputPath.toFile();
     }
 
     /**
@@ -552,5 +590,4 @@ public class Implementor implements Impler, JarImpler {
             Files.copy(_Dirs.resolve(_PathFile), out);
         }
     }
-}
 }
