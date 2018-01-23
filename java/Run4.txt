@@ -1,0 +1,27 @@
+Manifest-Version: 1.0
+Main-Class: Main-Class: ru.ifmo.ctddev.solutions.implementor.Implementor
+
+Сборка классов: 
+javac -d . info/kgeorgiy/java/advanced/implementor/Impler.java info/kgeorgiy/java/advanced/implementor/JarImpler.java info/kgeorgiy/java/advanced/implementor/ImplerException.java ru/ifmo/ctddev/solutions/implementor/Implementor.java
+
+Собрать jar: 
+jar cfm Implementor.jar MANIFEST.MF info/kgeorgiy/java/advanced/implementor/Impler.class info/kgeorgiy/java/advanced/implementor/JarImpler.class info/kgeorgiy/java/advanced/implementor/ImplerException.class ru/ifmo/ctddev/solutions/implementor/Implementor.class
+
+Пояснение: Через скрипт не получилось. Выдает следующие проблемы: PS A:\Users\AST\IdeaProjects\Solutions\src> java -jar .\Implementor.jar
+Error: A JNI error has occurred, please check your installation and try again
+Exception in thread "main" java.lang.NoClassDefFoundError: ru/ifmo/ctddev/solutions/implementor/Implementor$UnicodeFilterWriter
+        at java.lang.Class.getDeclaredMethods0(Native Method)
+        at java.lang.Class.privateGetDeclaredMethods(Unknown Source)
+        at java.lang.Class.privateGetMethodRecursive(Unknown Source)
+        at java.lang.Class.getMethod0(Unknown Source)
+        at java.lang.Class.getMethod(Unknown Source)
+        at sun.launcher.LauncherHelper.validateMainClass(Unknown Source)
+        at sun.launcher.LauncherHelper.checkAndLoadMain(Unknown Source)
+Caused by: java.lang.ClassNotFoundException: ru.ifmo.ctddev.solutions.implementor.Implementor$UnicodeFilterWriter
+        at java.net.URLClassLoader.findClass(Unknown Source)
+        at java.lang.ClassLoader.loadClass(Unknown Source)
+        at sun.misc.Launcher$AppClassLoader.loadClass(Unknown Source)
+        at java.lang.ClassLoader.loadClass(Unknown Source)
+        ... 7 more
+
+Из среды (Idea) - без проблем. 
