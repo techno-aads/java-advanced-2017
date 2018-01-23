@@ -1,4 +1,4 @@
-package ru.ifmo.ctddev.ovsyannikov.arrayset;
+package ru.ifmo.ctddev.solutions.arrayset;
 
 import java.util.*;
 
