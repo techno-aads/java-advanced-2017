@@ -48,7 +48,7 @@ public class Implementor implements JarImpler {
     }
 
     /**
-     * @param aClass token of the class to implement.
+     * @param aClass  token of the class to implement.
      * @param jarFile target <tt>.jar</tt> file.
      * @throws ImplerException if the aClass can not be generated in the jar-file
      */
@@ -98,7 +98,7 @@ public class Implementor implements JarImpler {
      * Responsible for genetating the implementation of specified class that represented by passed {@link Class}
      *
      * @param aClass token of the class to implement
-     * @param path the destination directory where implementation should be located
+     * @param path   the destination directory where implementation should be located
      * @throws ImplerException if class cannot be implemented by some reasons
      */
     @Override
@@ -128,12 +128,11 @@ public class Implementor implements JarImpler {
     /**
      * Responsible for generation of package
      *
-     * <p>Append to the {@link
-    StringBuilder} result the package
+     * <p>Append to the {@link StringBuilder} result the package
      *
      * @param aClass token of the class to implement
      * @param result {@link StringBuilder} represents the result string in where all generated information
-     * will be placed
+     *               will be placed
      */
     private void setPackage(Class<?> aClass, StringBuilder result) {
         result.append("package ")
@@ -153,7 +152,7 @@ public class Implementor implements JarImpler {
      *
      * @param aClass token of the class to implement
      * @param result {@link StringBuilder} represents the result string in where all generated information
-     * will be placed
+     *               will be placed
      * @throws ImplerException if class cannot be implemented by some reasons
      */
     private void setClass(Class<?> aClass, StringBuilder result) throws ImplerException {
@@ -177,7 +176,7 @@ public class Implementor implements JarImpler {
      *
      * @param aClass token of the class to implement
      * @param result {@link StringBuilder} represents the result string in where all generated information
-     * will be placed
+     *               will be placed
      * @throws ImplerException if not public constructors
      */
     private void setConstructors(Class<?> aClass, StringBuilder result) throws ImplerException {
@@ -242,7 +241,7 @@ public class Implementor implements JarImpler {
      *
      * @param aClass token of the class to implement
      * @param result {@link StringBuilder} represents the result string in where all generated information
-     * will be placed
+     *               will be placed
      */
     private void setMethods(Class<?> aClass, StringBuilder result) {
 
@@ -265,8 +264,7 @@ public class Implementor implements JarImpler {
      * @return string method's id
      */
     private String getMethodId(Method method) {
-        StringBuilder methodId = new
-                StringBuilder(method.getName());
+        StringBuilder methodId = new StringBuilder(method.getName());
         for (Class<?> type : method.getParameterTypes()) {
             methodId.append(type.toString());
         }
@@ -283,8 +281,8 @@ public class Implementor implements JarImpler {
      * <p>Get method's id using {@link #getMethodId} method
      *
      * @param methods of the class to implement
-     * @param result {@link StringBuilder} represents the result string in where all generated information
-     * will be placed
+     * @param result  {@link StringBuilder} represents the result string in where all generated information
+     *                will be placed
      */
     private void setMethods(Method[] methods, StringBuilder result) {
         for (Method method : methods) {
@@ -357,9 +355,9 @@ public class Implementor implements JarImpler {
      * Responsible for write result in file
      *
      * @param aClass token of the class to implement
-     * @param path to file
+     * @param path   to file
      * @param result {@link StringBuilder} represents the result string in where all generated information
-     * will be placed
+     *               will be placed
      * @throws IOException if result cannot be wrote in file
      */
     private void writeResultFile(Class<?> aClass, Path path, StringBuilder result) throws IOException {
