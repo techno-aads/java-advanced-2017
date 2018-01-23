@@ -13,7 +13,6 @@ import java.util.List;
 public class FVRealization extends SimpleFileVisitor<Path> {
 
     private static final int FNV_32_INIT = 0x811c9dc5;
-    private static final int FNV_32_PRIME = 0x01000193;
     private static final int BUFFER_SIZE = 65536;
     List<String> resString;
 
@@ -36,7 +35,7 @@ public class FVRealization extends SimpleFileVisitor<Path> {
         }
         return hval;
     }
-    
+
     @Override
     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
         int i = hashCodeForFile(file.toFile());
