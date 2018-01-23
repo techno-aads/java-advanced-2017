@@ -73,11 +73,7 @@ public class Implementor implements JarImpler {
             if (args.length == 2) {
                 new Implementor().implement(Class.forName(args[0]), Paths.get(args[1]));
             } else {
-                Class<?> clazz = Class.forName(args[0]);
-                Path path = Paths.get(args[1]);
-                Implementor impler = new Implementor();
-                impler.implement(clazz, path);
-                impler.implementJar(clazz, path);
+                new Implementor().implementJar(Class.forName(args[0]), Paths.get(args[1]));
             }
         } catch (ClassNotFoundException | ImplerException e) {
             System.out.println("Implementation error.");
