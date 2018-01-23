@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"ru.ifmo.ctddev.solutions.implementor"}]

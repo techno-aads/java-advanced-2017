@@ -13,10 +13,6 @@ public class AccountImpl implements Account {
         return id;
     }
 
-    public int getAmount() {
-        return amount;
-    }
-
     public void setAmount(int amount) {
         System.out.println("Setting amount of money for account " + id);
         this.amount = amount;
