@@ -60,9 +60,10 @@ public class Implementor implements JarImpler {
     private File outputJavaFile;
 
     /**
-     * Main method. Used to run created jar file. 2 params creates only implementation, more params creates Jar files
-     * for implementations.
-     * @param args array of arguments.
+     * Main method. Used to run created jar file. Pass only two required arguments to generate implementation. Pass
+     * two required parameters and any number of additional params to generate jar files with implementations.
+     * @param args array of arguments. First argument full name of interface or class for which should be generated
+     *             implementation. Second argument path for generated files.
      */
     public static void main(String[] args) {
         try {
