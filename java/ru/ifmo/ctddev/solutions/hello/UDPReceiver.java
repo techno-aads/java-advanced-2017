@@ -27,29 +27,27 @@ public class UDPReceiver implements Runnable{
     @Override
     public void run() {
 
-        while (Boolean.TRUE) {
+        while (!m_Socket.isClosed()) {
+            byte[] receiveBytes = new byte[4096];
+            DatagramPacket receivePacket = new DatagramPacket(receiveBytes, receiveBytes.length);
+
             try {
-                m_Socket.receive(m_InDatagramPacket);
+                m_Socket.receive(receivePacket);
+                String requestString = new String(receivePacket.getData(), receivePacket.getOffset(), receivePacket.getLength());
+                String responseString = "Hello, " + requestString;
 
-                byte[] receivedBytes = new byte[m_InDatagramPacket.getLength()];
-                System.arraycopy(m_InDatagramPacket.getData(), 0, receivedBytes, 0, m_InDatagramPacket.getLength());
-                String inputRequest = new String(receivedBytes);
+                byte[] responseBytes = responseString.getBytes("UTF-8");
+                DatagramPacket responsePacket = new DatagramPacket(responseBytes, responseBytes.length, receivePacket.getSocketAddress());
 
-                if (inputRequest.equals("")) {
-                    System.out.println("Error Received bytes for input Request!!!");
-                    continue;
-                }
-
-                String answer = "Hello, " + inputRequest;
-                byte[] sentBytes = answer.getBytes();
-                m_OutDatagramPacket = new DatagramPacket(sentBytes, sentBytes.length, m_InDatagramPacket.getAddress(), m_InDatagramPacket.getPort()); // sending
-                m_Socket.send(m_OutDatagramPacket);
+                m_Socket.send(responsePacket);
+            } catch (SocketException e) {
+                // already closed
             } catch (IOException e) {
-                System.out.println("UDPReceiver IOException" + e.getMessage());
-                System.out.println(e);
-                continue;
+                System.out.println(e.getMessage());
             }
         }
 
     }
+
+
 }
