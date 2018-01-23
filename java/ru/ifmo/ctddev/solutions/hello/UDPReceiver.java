@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 
 public class UDPReceiver implements Runnable{
 
@@ -14,6 +15,11 @@ public class UDPReceiver implements Runnable{
 
         try {
             m_Socket = socket;
+            try {
+                m_Socket.setSoTimeout(100);
+            } catch (SocketException e) {
+                e.printStackTrace();
+            }
             byte[] inputBuffer = new byte[socket.getReceiveBufferSize()];
             m_InDatagramPacket = new DatagramPacket(inputBuffer, inputBuffer.length);
 
@@ -29,6 +35,7 @@ public class UDPReceiver implements Runnable{
 
         while (!m_Socket.isClosed()) {
             byte[] receiveBytes = new byte[4096];
+
             DatagramPacket receivePacket = new DatagramPacket(receiveBytes, receiveBytes.length);
 
             try {
@@ -40,7 +47,9 @@ public class UDPReceiver implements Runnable{
                 DatagramPacket responsePacket = new DatagramPacket(responseBytes, responseBytes.length, receivePacket.getSocketAddress());
 
                 m_Socket.send(responsePacket);
-            } catch (SocketException e) {
+            } catch(SocketTimeoutException e){
+                return;
+            }catch (SocketException e) {
                 // already closed
             } catch (IOException e) {
                 System.out.println(e.getMessage());
