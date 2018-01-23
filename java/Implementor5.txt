@@ -1,2 +1,2 @@
 # run in console!
-javadoc -d ./doc ru/ifmo/ctddev/solutions/implementor/Implementor.java -private -link info/kgeorgiy/java/advanced/implementor/Impler.java
+javadoc -d ./doc ru/ifmo/ctddev/solutions/implementor/Implementor.java -private -link https://docs.oracle.com/javase/8/docs/api/
