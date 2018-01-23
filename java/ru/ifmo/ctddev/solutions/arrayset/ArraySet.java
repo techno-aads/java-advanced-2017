@@ -147,7 +147,7 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E> {
         if(i < 0) {
             i = -(i + 1);
         }
-        else{
+        else {
             if(flag_incl == false) {
                 i += 1;
             }
@@ -228,36 +228,6 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E> {
                 return Vreturn;
             }
         };
-    }
-
-    @Override
-    public boolean add(E e) {
-        throw new UnsupportedOperationException("Unsupported operation");
-    }
-
-    @Override
-    public boolean addAll(Collection<? extends E> c) {
-        throw new UnsupportedOperationException("Unsupported operation");
-    }
-
-    @Override
-    public boolean remove(Object o) {
-        throw new UnsupportedOperationException("Unsupported operation");
-    }
-
-    @Override
-    public boolean removeAll(Collection<?> c) {
-        throw new UnsupportedOperationException("Unsupported operation");
-    }
-
-    @Override
-    public boolean retainAll(Collection<?> c) {
-        throw new UnsupportedOperationException("Unsupported operation");
-    }
-
-    @Override
-    public void clear() {
-        throw new UnsupportedOperationException("Unsupported operation");
     }
 
     @Override
