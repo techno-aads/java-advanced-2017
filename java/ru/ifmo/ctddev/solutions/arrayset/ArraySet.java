@@ -57,9 +57,12 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E>
 
     private List<E> addCollection(List<E> elements, Comparator<? super E> comparator)
     {
-        elements.sort(comparator);
-        SortedSet<E> set =  new TreeSet<E>(elements);
-        return new ArrayList<>(set);
+		ArrayList<E> inputData = new ArrayList<>(elements);
+
+        SortedSet set = new TreeSet<E>(comparator);
+        set.addAll(inputData);
+        
+        return new ArrayList<E> (set);
     }
 
     @Override
