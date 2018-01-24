@@ -9,28 +9,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RecursiveWalk {
-    
     public static List<String> readFromFile(String filename) throws IOException {
-        BufferedReader reader = new BufferedReader(new FileReader(filename));
-        String line;
         List<String> lines = new ArrayList<String>();
-        while ((line = reader.readLine()) != null) {
-            lines.add(line);
+        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                lines.add(line);
+            }
         }
-        reader.close();
         return lines;
     }
 
     public static void writeToFile(String filename, List<String> strings) throws IOException {
-        FileWriter writer = new FileWriter(filename);
-        for(String line : strings) {
-            writer.write(line);
-            writer.write(System.lineSeparator());
+        try (FileWriter writer = new FileWriter(filename)) {
+            for (String line : strings) {
+                writer.write(line);
+                writer.write(System.lineSeparator());
+            }
+            writer.flush();
         }
-        writer.flush();
-        writer.close();
     }
-
+    
     public static void main(String[] args){
         List<String> res;
         List<String> outputList = new ArrayList<>();
