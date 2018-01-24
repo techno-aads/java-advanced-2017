@@ -1,1 +1,1 @@
-javadoc -private -d out/java-doc -classpath "./java;lib/*" ru.ifmo.ctddev.solutions.implementor
+javadoc -private -d out/java-doc -classpath "./java;lib/*" -link https://docs.oracle.com/javase/8/docs/api/ ru.ifmo.ctddev.solutions.implementor
