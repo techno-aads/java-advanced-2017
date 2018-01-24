@@ -12,16 +12,15 @@ class FileUtils {
     }
 
     static List<File> readInputFile(String inputFilePath) throws IOException {
-        InputStreamReader streamReader = new InputStreamReader(new FileInputStream(inputFilePath), "UTF-8");
-        BufferedReader reader = new BufferedReader(streamReader);
-        String line;
-        List<File> files = new ArrayList<>();
-        while ((line = reader.readLine()) != null) {
-            files.add(new File(line));
+        try (BufferedReader reader =
+                     new BufferedReader(new InputStreamReader(new FileInputStream(inputFilePath), "UTF-8"))) {
+            String line;
+            List<File> files = new ArrayList<>();
+            while ((line = reader.readLine()) != null) {
+                files.add(new File(line));
+            }
+            return files;
         }
-        streamReader.close();
-        reader.close();
-        return files;
     }
 
     static int hash(File file) {

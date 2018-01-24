@@ -6,7 +6,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E> {
+public class ArraySet<E> extends ImmutableArraySet<E> {
     private List<E> list;
     private Comparator<? super E> comparator;
 
@@ -72,11 +72,6 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E> {
     }
 
     @Override
-    public void clear() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public Stream<E> stream() {
         return list.stream();
     }
@@ -139,26 +134,11 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E> {
     }
 
     @Override
-    public boolean add(E e) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean remove(Object o) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public boolean containsAll(Collection<?> collection) {
         for (Object o : collection) {
             if (!contains(o)) return false;
         }
         return true;
-    }
-
-    @Override
-    public boolean addAll(Collection<? extends E> collection) {
-        throw new UnsupportedOperationException();
     }
 
     private boolean addAllElementsToList(Collection<? extends E> collection) {
@@ -170,11 +150,6 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E> {
         } catch (Exception e) {
             return false;
         }
-    }
-
-    @Override
-    public boolean retainAll(Collection<?> collection) {
-        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -215,16 +190,6 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E> {
             return i >= 0 ? getElementByIndex(i + 1) : getElementByIndex(getValidExistingElementIndex(i));
         }
         return null;
-    }
-
-    @Override
-    public E pollFirst() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public E pollLast() {
-        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -313,11 +278,6 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E> {
     @Override
     public SortedSet<E> subSet(E e, E e1) {
         return subSet(e, true, e1, false);
-    }
-
-    @Override
-    public boolean removeAll(Collection<?> collection) {
-        throw new UnsupportedOperationException();
     }
 
     @Override

@@ -5,11 +5,10 @@ import java.util.List;
 
 public class RecursiveWalk {
     public static void main( String[] args ) {
-        if (args.length < 2) {
-            return;
-        }
-
         try {
+            if (args.length < 2) {
+                return;
+            }
             String inputFilePath = args[0];
             String outputFilePath = args[1];
 
@@ -20,7 +19,7 @@ public class RecursiveWalk {
 
             FileUtils.writeOutputFile(outputFilePath, walk.getResult());
 
-        } catch (IOException ignored) {
+        } catch (IOException | IllegalArgumentException ignored) {
 
         }
 
