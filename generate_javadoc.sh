@@ -1,0 +1,1 @@
+javadoc -cp "lib/*:artifacts/*" -d javadoc/ -private -sourcepath java/ ru.ifmo.ctddev.solutions.implementor
