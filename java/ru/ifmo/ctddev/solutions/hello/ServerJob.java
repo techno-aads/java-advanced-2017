@@ -23,11 +23,14 @@ public class ServerJob implements Runnable {
     @Override
     public void run() {
         final DatagramPacket request = new DatagramPacket(new byte[bufferSize], bufferSize);
-        while (!Thread.currentThread().isInterrupted()) {
+        while (!Thread.currentThread().isInterrupted() && !socket.isClosed()) {
             try {
                 socket.receive(request);
             } catch (IOException e) {
-                log.log(Level.INFO, "Can't read request.", e);
+                if (socket.isClosed()) {
+                    return;
+                }
+                log.log(Level.WARNING, "Can't read request.", e);
                 continue;
             }
             final String body = UDPUtils.parseBody(request);
@@ -36,7 +39,7 @@ public class ServerJob implements Runnable {
             try {
                 socket.send(response);
             } catch (IOException e) {
-                log.log(Level.INFO, "Can't send response.", e);
+                log.log(Level.WARNING, "Can't send response.", e);
             }
         }
     }
