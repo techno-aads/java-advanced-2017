@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
-
+import ru.ifmo.ctddev.solutions.crawler.AddMethod;
 
 
 public class WebCrawler implements Crawler {
