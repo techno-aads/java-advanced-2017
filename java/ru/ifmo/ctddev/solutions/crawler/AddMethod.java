@@ -1,4 +1,4 @@
-package com.com;
+package ifmo.ctddev.solutions.crawler;
 
 import info.kgeorgiy.java.advanced.crawler.Document;
 import info.kgeorgiy.java.advanced.crawler.Downloader;
