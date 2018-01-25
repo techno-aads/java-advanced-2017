@@ -170,6 +170,7 @@ public class WalkTest extends BaseTest {
         }
         System.out.println("Running " + name.getMethodName());
         try {
+
             method.invoke(null, (Object) args);
             syncErr();
         } catch (final IllegalAccessException e) {
