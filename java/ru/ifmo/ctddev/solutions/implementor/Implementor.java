@@ -134,12 +134,7 @@ public class Implementor implements JarImpler {
         }
         
         try (BufferedWriter bw = Files.newBufferedWriter(pathToFile, StandardCharsets.UTF_8)) {
-            bw.write("package ");
-            bw.write(token.getPackage().getName());
-            bw.write(";");
-            
-            bw.newLine();
-            bw.newLine();
+            writePackage(bw, token.getPackage());
             
             writeImports(bw, imports);
             
@@ -164,6 +159,26 @@ public class Implementor implements JarImpler {
         }
         
         return pathToFile;
+    }
+    
+    /**
+     * Writes package name to the specified BufferedWriter if <tt>aPackage</tt> is not null;
+     * writes nothing otherwise.
+     *
+     * @param bw a BufferedWriter that writes to the new source file
+     * @param aPackage a Package
+     *
+     * @throws IOException if an I/O error occurs
+     */
+    private void writePackage(BufferedWriter bw, Package aPackage) throws IOException {
+        if (aPackage != null) {
+            bw.write("package ");
+            bw.write(aPackage.getName());
+            bw.write(";");
+    
+            bw.newLine();
+            bw.newLine();
+        }
     }
     
     /**
