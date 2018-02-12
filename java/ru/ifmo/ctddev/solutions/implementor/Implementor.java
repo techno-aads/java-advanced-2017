@@ -6,6 +6,7 @@ import info.kgeorgiy.java.advanced.implementor.JarImpler;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -23,13 +24,22 @@ import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 
-
+/**
+ * The Implementor class provides methods to create basic implementation of specified class.
+ */
 public class Implementor implements JarImpler {
     
     /**
      * An indent used in code generation
      */
     private static final String INDENT = "    ";
+    
+    /**
+     * Does nothing.
+     */
+    public Implementor() {
+    
+    }
     
     /**
      * Produces <tt>.jar</tt> file implementing class or interface specified by provided <tt>token</tt>.
@@ -116,7 +126,7 @@ public class Implementor implements JarImpler {
         
         Set<Class<?>> imports = getImports(token);
         
-        Path pathToFile = Paths.get(root.toAbsolutePath() + "/" + token.getCanonicalName().replace(".", "/") + "Impl.java");
+        Path pathToFile = Paths.get(root.toAbsolutePath() + File.separator + token.getCanonicalName().replace(".", File.separator) + "Impl.java");
         try {
             Files.createDirectories(pathToFile.getParent());
         } catch (IOException e) {

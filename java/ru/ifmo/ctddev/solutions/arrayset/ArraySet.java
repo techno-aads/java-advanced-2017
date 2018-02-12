@@ -53,6 +53,8 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E> {
      */
     @Override
     public E lower(E e) {
+        Objects.requireNonNull(e);
+        
         int index = binarySearch(e);
         if (index < 0) {
             index = -index - 1;
@@ -83,6 +85,8 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E> {
      */
     @Override
     public E floor(E e) {
+        Objects.requireNonNull(e);
+        
         int index = binarySearch(e);
         if (index < 0) {
             index = -index - 2;
@@ -111,6 +115,8 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E> {
      */
     @Override
     public E ceiling(E e) {
+        Objects.requireNonNull(e);
+        
         int index = binarySearch(e);
         if (index < 0) {
             index = -index - 1;
@@ -139,6 +145,8 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E> {
      */
     @Override
     public E higher(E e) {
+        Objects.requireNonNull(e);
+        
         int index = binarySearch(e);
         if (index >= 0) {
             index++;
@@ -244,7 +252,14 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E> {
      *                                  {@code toElement} lies outside the bounds of the range.
      */
     @Override
-    public NavigableSet<E> subSet(E fromElement, boolean fromInclusive, E toElement, boolean toInclusive) throws IllegalArgumentException {
+    public NavigableSet<E> subSet(E fromElement, boolean fromInclusive, E toElement, boolean toInclusive) {
+        Objects.requireNonNull(fromElement);
+        Objects.requireNonNull(toElement);
+    
+        if (comparator.compare(fromElement, toElement) > 0) {
+            throw new IllegalArgumentException("fromElement is greater than toElement");
+        }
+        
         E ceiling = ceiling(fromElement);
         E floor = floor(toElement);
         
@@ -314,11 +329,18 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E> {
      */
     @Override
     public NavigableSet<E> headSet(E toElement, boolean inclusive) {
+        Objects.requireNonNull(toElement);
+        
         if (size() == 0) {
             return this;
         }
+    
+        E first = first();
+        if (comparator.compare(toElement, first) < 0) {
+            return emptySet(comparator);
+        }
         
-        return subSet(first(), true, toElement, inclusive);
+        return subSet(first, true, toElement, inclusive);
     }
     
     /**
@@ -352,11 +374,18 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E> {
      */
     @Override
     public NavigableSet<E> tailSet(E fromElement, boolean inclusive) {
+        Objects.requireNonNull(fromElement);
+        
         if (size() == 0) {
             return this;
         }
+    
+        E last = last();
+        if (comparator.compare(fromElement, last) > 0) {
+            return emptySet(comparator);
+        }
         
-        return subSet(fromElement, inclusive, last(), true);
+        return subSet(fromElement, inclusive, last, true);
     }
     
     /**
