@@ -1,4 +1,4 @@
-package ru.ifmo.ctddev.solutions.implementor;
+package ru.ifmo.ctddev.ovsyannikov.implementor;
 
 import java.io.*;
 import java.lang.reflect.*;
@@ -23,7 +23,15 @@ import info.kgeorgiy.java.advanced.implementor.JarImpler;
  * @author Tim Ovsyannikov
  */
 public class Implementor implements JarImpler
-{
+{   /**
+    * LINE SEPARATOR
+    */
+    final private String LS = System.lineSeparator();
+
+    /**
+    * FILE SEPARATOR
+    */
+    final private String FS = getFS();
     /**
      *  Class example which implementation is being created
      */
@@ -53,34 +61,35 @@ public class Implementor implements JarImpler
      */
     private File out;
 
-
+    /**
+     * Getting file separator
+     * @return string which contains current file separator
+     */
+    private static String getFS()
+    {
+        return File.separator.equals("\\") ? "\\\\" : File.separator;
+    }
     /**
      * Method which generates the interface code and writes it into the file, which is placed in directory stated in
      * path variable.
      * @param token class example which is implemented
      * @param path path to directory or .java file
-     * @throws ImplerException
+     * @throws ImplerException throws if can't implement interface
      */
     @Override
     public void implement(Class<?> token, Path path) throws ImplerException
     {
-        try {
+        validator(token);
+        out = path.toString().contains("Impl.java")
+            ? path.toFile()
+            : getOutputFile(token, path);
 
-            if (path.toString().contains("Impl.java"))
-            {
-                out = path.toFile();
-            }
-            else
-            {
-                out = getOutputFile(token, path);
-            }
-
-            Writer writer = new OutputStreamWriter(new FileOutputStream(out.getPath()), StandardCharsets.UTF_8);
+        try ( Writer writer = new OutputStreamWriter( new FileOutputStream(out.getPath()), StandardCharsets.UTF_8 ) )
+        {
             String implementation = getImplementedClass(token);
 
             writer.write(implementation);
             writer.close();
-
         }
         catch (Exception e)
         {
@@ -196,20 +205,23 @@ public class Implementor implements JarImpler
      * @param classExample class example currently being implemented
      * @param path path where generated file need save
      * @return file for writer
-     * @throws IOException
+     * @throws ImplerException throws if error occurs during path determination
      */
-    private File getOutputFile(Class<?> classExample, Path path) throws IOException
+    private File getOutputFile(Class<?> classExample, Path path) throws ImplerException
     {
-        String classFileName = classExample.getSimpleName() + "Impl.java";
-        String[] packages = classExample.getPackage().getName().split("\\.");
-        Path outputPath = Paths.get(path.toAbsolutePath().toString(), packages);
+        try {
+            String classFileName = classExample.getSimpleName() + "Impl.java";
+            String[] packages = classExample.getPackage().getName().split("\\.");
+            Path outputPath = Paths.get(path.toAbsolutePath().toString(), packages);
 
 
-        Files.createDirectories(outputPath);
-        outputPath = Paths.get(outputPath.toString(), classFileName);
+            Files.createDirectories(outputPath);
+            outputPath = Paths.get(outputPath.toString(), classFileName);
 
-        System.out.println("Filename =" + outputPath);
-        return outputPath.toFile();
+            System.out.println("Filename =" + outputPath);
+            return outputPath.toFile();
+        }
+        catch (IOException e) { throw new ImplerException(e); }
     }
 
     /**
@@ -220,15 +232,15 @@ public class Implementor implements JarImpler
     {
         StringBuilder headerStruct = new StringBuilder();
 
-        headerStruct.append("package ").append(packageName).append(";\n");
+        headerStruct.append("package ").append(packageName).append(";").append(LS);
 
         for (Class<?> s : imports)
         {
-            headerStruct.append("import ").append(s.getName()).append(";\n");
+            headerStruct.append("import ").append(s.getName()).append(";").append(LS);
         }
 
-        headerStruct.append("\n");
-        headerStruct.append("public class ").append(className).append("Impl implements ").append(className).append(" {\n");
+        headerStruct.append(LS);
+        headerStruct.append("public class ").append(className).append("Impl implements ").append(className).append(" {").append(LS);
 
         return headerStruct.toString();
     }
@@ -257,25 +269,25 @@ public class Implementor implements JarImpler
     {
         StringBuilder methodStruct = new StringBuilder();
         methodStruct.append("    public ").append(method.getReturnType().getSimpleName())
-                .append(" ").append(method.getName()).append("(" + methodParams(method) + ") {\n");
+                .append(" ").append(method.getName()).append("(" + methodParams(method) + ") {").append(LS);
 
         Class<?> returnType = method.getReturnType();
         if (!returnType.equals(Void.TYPE)) {
             methodStruct.append("        ");
             if (returnType.isPrimitive()) {
                 if (returnType.equals(Boolean.TYPE)) {
-                    methodStruct.append("return false;\n");
+                    methodStruct.append("return false;").append(LS);
                 } else if (returnType.equals(Character.TYPE)) {
-                    methodStruct.append("return '\\0';\n");
+                    methodStruct.append("return '\\0';").append(LS);
                 } else {
-                    methodStruct.append("return 0;\n");
+                    methodStruct.append("return 0;").append(LS);
                 }
             } else {
-                methodStruct.append("return null;\n");
+                methodStruct.append("return null;").append(LS);
             }
         }
 
-        methodStruct.append("    }\n\n");
+        methodStruct.append("    }").append(LS).append(LS);
 
         return methodStruct.toString();
     }
@@ -365,28 +377,29 @@ public class Implementor implements JarImpler
      * Implementation of interface code and creating .jar file.
      * @param token class example currently being implemented
      * @param jarFile path where generated .jar file will be saved
-     * @throws ImplerException
+     * @throws ImplerException throws if can't implement interface
      */
     public void implementJar(Class<?> token, Path jarFile) throws ImplerException
     {
-
-        if (token.isPrimitive() || token.isArray() || token == Enum.class)
+        try
         {
-            throw new ImplerException("Input Class<> is not an interface");
-        }
+        validator(token);
 
         classExample = token;
-        className = "tmp/" + token.getPackage().getName().replaceAll("\\.", "/");
-        className += (token.getPackage().getName().isEmpty()) ? "" : "/";
+
+        Package pack = token.getPackage();
+        String sPack = pack == null ? "" : pack.getName();
+
+        className = "tmp" + FS + sPack.replaceAll("\\.", FS);
+        className += (sPack.isEmpty()) ? "" : FS;
         className += token.getSimpleName() + "Impl.java";
 
         implement(classExample, Paths.get(className));
 
         compileFile(out.getPath());
 
-        try
-        {
-            String sourceFile = out.getPath().replaceAll("\\\\", "/");
+
+            String sourceFile = out.getPath().replaceAll(FS, "/");
 
             createJarFile(sourceFile.replace(".java", ".class"), jarFile);
         }
@@ -427,14 +440,17 @@ public class Implementor implements JarImpler
      * Method that creates .jar file
      * @param sourceFile The location of package of java-class that need to be stored in archive.
      * @param jarPath The absolute path to java-class.
-     * @throws IOException
+     * @throws IOException throws if jar file i/o stream error occurs
      */
     private void createJarFile(String sourceFile, Path jarPath) throws IOException
     {
 
-        FileOutputStream fos = null;
-        JarOutputStream jarOutputStream = null;
-        try
+        Manifest manifest = new Manifest();
+
+        try (
+                FileOutputStream fos = new FileOutputStream(jarPath.toFile());
+                JarOutputStream jarOutputStream = new JarOutputStream(fos, manifest)
+            )
         {
             File f = new File(jarPath.toUri());
 
@@ -448,10 +464,6 @@ public class Implementor implements JarImpler
                 System.out.println("invalid path to jar file to be created");
                 System.exit(1);
             }
-
-            fos = new FileOutputStream(jarPath.toFile());
-            Manifest manifest = new Manifest();
-            jarOutputStream = new JarOutputStream(fos, manifest);
 
             String newClassPath = sourceFile.substring(sourceFile.indexOf("tmp/") + 4);
 
@@ -469,19 +481,28 @@ public class Implementor implements JarImpler
             }
 
             jarOutputStream.closeEntry();
-            jarOutputStream.close();
-            fos.close();
-
         }
         catch (IOException e)
         {
-            jarOutputStream.closeEntry();
-            jarOutputStream.close();
-            fos.close();
             throw new IOException(e.getMessage());
         }
 
     }
+
+    protected void validator(Class<?> aClass) throws ImplerException {
+        if (aClass.isPrimitive()) {
+            throw new ImplerException("Type is a primitive.");
+        }
+        if (!aClass.isInterface()) {
+            if (Modifier.isFinal(aClass.getModifiers())) {
+                throw new ImplerException("Cannot extend final class: " + aClass.toString());
+            }
+        }
+        if (Enum.class.isAssignableFrom(aClass)) {
+            throw new ImplerException("Cannot extend enum type: " + aClass.toString());
+        }
+    }
+
 }
 
 

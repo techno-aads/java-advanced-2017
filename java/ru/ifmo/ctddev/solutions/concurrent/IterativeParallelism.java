@@ -1,6 +1,7 @@
 package ru.ifmo.ctddev.solutions.concurrent;
 
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 
 import info.kgeorgiy.java.advanced.concurrent.ScalarIP;
@@ -67,11 +68,8 @@ public class IterativeParallelism implements ScalarIP
         Thread[] threadPool = new Thread[threads];
         int countThread = Integer.min(threads, values.size());
         int sizeSubList = values.size() / countThread;
-        List<Boolean> result = new ArrayList<>();
-        Object locker = new Object();
-
-        result.add(true);
-
+        Boolean[] res = new Boolean[1];
+        res[0] = true;
 
         for (int i = 0; i < countThread; i++)
         {
@@ -90,17 +88,11 @@ public class IterativeParallelism implements ScalarIP
                     endIndex = startIndex + sizeSubList;
                 }
 
-                //  int endIndex = (localI == countThread - 1) ? values.size() : startIndex + sizeSubList;
-
                 if (startIndex < endIndex)
                 {
                     boolean localResult = values.subList(startIndex, endIndex).stream().allMatch(predicate);
-                    synchronized (locker)
-                    {
-                        if (!localResult)
-                        {
-                            result.set(0, false);
-                        }
+                    synchronized (res) {
+                        res[0] &= localResult;
                     }
                 }
             });
@@ -114,7 +106,7 @@ public class IterativeParallelism implements ScalarIP
             threadPool[i].join();
         }
 
-        return result.get(0);
+        return res[0];
     }
 
     @Override
