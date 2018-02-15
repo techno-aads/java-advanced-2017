@@ -30,6 +30,7 @@ public class Implementor implements JarImpler, Impler {
      * Line separator for current platform
      */
     private static final String LINE_SEPARATOR = System.lineSeparator();
+    private static final String FILE_SEPARATOR = fileSeparatorToString();
     /**
      * Interface to get realization
      */
@@ -54,14 +55,22 @@ public class Implementor implements JarImpler, Impler {
         this.methods = this.getMethods(this.clazz);
         this.imports = this.getClassImports(this.clazz);
 
+        String fileName = getFilename(token, root) + ".java";
+        File out = new File(fileName);
         try {
-            String classRealization = generateClassRealization(token);
-            File out = getFilename(token, root);
             Files.createDirectories(out.getParentFile().toPath());
-            Writer writer = new OutputStreamWriter(new FileOutputStream(out));
+        }
+        catch(Exception e){
+            throw new ImplerException(e);
+        }
+
+        try (
+                Writer writer = new OutputStreamWriter(new FileOutputStream(out));
+                ) {
+//            Files.createDirectories(out.getParentFile().toPath());
+            String classRealization = generateClassRealization(token);
             writer.write(classRealization);
-            writer.close();
-            compileClass(out);
+//            compileClass(out);
         } catch(Exception e) {
             throw new ImplerException(e);
         }
@@ -79,22 +88,23 @@ public class Implementor implements JarImpler, Impler {
         this.methods = this.getMethods(this.clazz);
         this.imports = this.getClassImports(this.clazz);
 
-        try {
-            Path root = new File(".").toPath();
-            String classRealization = generateClassRealization(token);
-            File out = getFilename(token, root);
+        Path root = new File(".").toPath();
+        String classRealization = generateClassRealization(token);
+        File out = new File(getFilename(token, root) + ".java");
+        String classNameString = getFilename(token, root) + ".class";
+        File sourceFile = new File(classNameString);
+        File jarOutput = new File(jarFile.toString());
+
+        try (
+                Writer writer = new OutputStreamWriter(new FileOutputStream(out));
+                ) {
             Files.createDirectories(out.getParentFile().toPath());
 //            Files.createDirectories(jarFile.getParent());
-            Writer writer = new OutputStreamWriter(new FileOutputStream(out));
             writer.write(classRealization);
-            writer.close();
             compileClass(out);
-            String outString = out.toString().replaceAll("\\\\", "/");
-            String classNameString = outString.substring(0, outString.length() - 5) + ".class";
+//            String outString = out.toString().replaceAll("\\\\", "/");
             System.out.println(classNameString);
-            File sourceFile = new File(classNameString);
             Files.createDirectories(jarFile.getParent());
-            File jarOutput = new File(jarFile.toString());
             jarOutput.createNewFile();
             createJar(jarOutput, sourceFile);
         } catch(Exception e) {
@@ -153,7 +163,7 @@ public class Implementor implements JarImpler, Impler {
      * @return {@link java.lang.String} representation of package
      */
     private String getPackage(Class<?> token) {
-        return "package " + token.getPackage().getName() + ";" + LINE_SEPARATOR;
+        return token.getPackage() != null ? "package " + token.getPackage().getName() + ";" + LINE_SEPARATOR : "";
     }
 
     /**
@@ -261,21 +271,26 @@ public class Implementor implements JarImpler, Impler {
     }
 
     /**
-     * Generates file to write class' realization. Generated name have suffix "Impl"
+     * Generates file to write class' realization. Generated name have suffix "Impl".
+     * Note that this function doesn't return type of file
      * @param token class to get realization
      * @param path given root path
-     * @return {@link java.io.File} to write class realization
+     * @return {@link java.lang.String} filename (without type) to write
      */
-    private File getFilename(Class<?> token, Path path) {
+    private String getFilename(Class<?> token, Path path) {
         StringBuilder fileName = new StringBuilder();
-        fileName.append(path.toString()).append("/")
-                .append(token.getPackage().getName().replaceAll("\\.", "/"));
-        if (!token.getPackage().getName().isEmpty()) {
-            fileName.append("/");
+        if(token.getPackage() != null) {
+            System.out.println(token.getPackage().getName().replaceAll("\\.", FILE_SEPARATOR));
+            fileName.append(path.toString()).append(FILE_SEPARATOR)
+                    .append(token.getPackage().getName().replaceAll("\\.", FILE_SEPARATOR))
+            .append(FILE_SEPARATOR);
         }
-        fileName.append(token.getSimpleName()).append("Impl.java");
+//        fileName.append(path.toString()).append(FILE_SEPARATOR)
+//                .append(token.getPackage().getName());
+
+        fileName.append(token.getSimpleName()).append("Impl");
         System.out.println(fileName);
-        return new File(fileName.toString());
+        return fileName.toString();
     }
 
     /**
@@ -307,22 +322,23 @@ public class Implementor implements JarImpler, Impler {
         System.out.println("sourceString = " + sourceString);
         File newSourceFile = new File(sourceString);
         Manifest manifest = new Manifest();
-        OutputStream out = null;
-        JarOutputStream jar = null;
-        BufferedInputStream in = null;
+//        OutputStream out = null;
+//        JarOutputStream jar = null;
+//        BufferedInputStream in = null;
         manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
-        try {
-            out = new FileOutputStream(outputFile);
-        } catch(Exception e) {
-            System.err.println("From createJar");
-            System.err.println(e.getMessage());
-        }
-        try {
-            jar = new JarOutputStream(out, manifest);
-            JarEntry entry = new JarEntry(newSourceFile.getPath().replace("\\", "/"));
+//        try {
+//            out = new FileOutputStream(outputFile);
+//        } catch(Exception e) {
+//            System.err.println("From createJar");
+//            System.err.println(e.getMessage());
+//        }
+        try (
+                JarOutputStream jar = new JarOutputStream(new FileOutputStream(outputFile), manifest);
+                BufferedInputStream in = new BufferedInputStream(new FileInputStream(newSourceFile));
+                ) {
+            JarEntry entry = new JarEntry(newSourceFile.getPath().replace(File.separator, "/"));
             jar.putNextEntry(entry);
             byte[] buffer = new byte[8 * 1024];
-            in = new BufferedInputStream(new FileInputStream(newSourceFile));
             while (true)
             {
                 int count = in.read(buffer);
@@ -331,19 +347,23 @@ public class Implementor implements JarImpler, Impler {
                 jar.write(buffer, 0, count);
             }
             jar.closeEntry();
-            in.close();
-            jar.close();
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }
     }
 
+    private static String fileSeparatorToString() {
+        return File.separator.equals("\\") ? "\\\\" : File.separator;
+    }
+
     public static final void main(String[] args) {
         if (args.length < 2 || args.length > 3) {
-            System.out.println("Bad arguments");
+            System.out.println("Please, type in form \"-jar <class to generate realization> <path to store jar>\" " +
+                    "or \"<class to generate realization> <path to store generated class>\"");
             System.exit(-1);
         } else if((args.length == 3)&&(!args[0].equals("-jar"))) {
-            System.out.println("Wrong first argument");
+            System.out.println("If input consists of 3 arguments, type in form \"-jar <class to generate realization>" +
+                    " <path to store jar>\"");
             System.exit(-2);
         }
 
