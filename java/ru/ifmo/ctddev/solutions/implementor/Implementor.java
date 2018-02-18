@@ -96,16 +96,21 @@ public class Implementor implements JarImpler, Impler {
         File sourceFile = new File(classNameString);
         File jarOutput = new File(jarFile.toString());
 
+        try {
+            Files.createDirectories(out.getParentFile().toPath());
+        }
+        catch(Exception e){
+            throw new ImplerException(e);
+        }
+
         try (
                 Writer writer = new OutputStreamWriter(new FileOutputStream(out));
                 ) {
-            Files.createDirectories(out.getParentFile().toPath());
-//            Files.createDirectories(jarFile.getParent());
             writer.write(classRealization);
             writer.close();
             compileClass(out);
 //            String outString = out.toString().replaceAll("\\\\", "/");
-            System.out.println(classNameString);
+            System.out.println("classNameString = " + classNameString);
             Files.createDirectories(jarFile.getParent());
             jarOutput.createNewFile();
             createJar(jarOutput, sourceFile);
