@@ -88,7 +88,7 @@ public class Implementor implements JarImpler, Impler {
         this.methods = this.getMethods(this.clazz);
         this.imports = this.getClassImports(this.clazz);
 
-        Path root = new File(".").toPath();
+        Path root = Paths.get(".");
         String classRealization = generateClassRealization(token);
         File out = new File(getFilename(token, root) + ".java");
         String classNameString = getFilename(token, root) + ".class";
@@ -101,6 +101,7 @@ public class Implementor implements JarImpler, Impler {
             Files.createDirectories(out.getParentFile().toPath());
 //            Files.createDirectories(jarFile.getParent());
             writer.write(classRealization);
+            writer.close();
             compileClass(out);
 //            String outString = out.toString().replaceAll("\\\\", "/");
             System.out.println(classNameString);
