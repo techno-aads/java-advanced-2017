@@ -1,4 +1,37 @@
-Тесты к курсу «Технологии Java»
+Домашние задания
+---
+Находятся в файле [homeworks.md](homeworks.md)
+
+Работа с репозиторием
+====
+
+[Форкните проект](https://help.github.com/articles/fork-a-repo/), склонируйте и добавьте `upstream`:
+```
+$ git clone https://<username>@github.com/<username>/java-advanced-2017.git <<<< Адрес до вашего склонированного репозитория
+  Cloning into 'java-advanced-2017'...
+  remote: Counting objects: 467, done.
+  remote: Total 467 (delta 0), reused 0 (delta 0), pack-reused 467
+  Receiving objects: 100% (467/467), 1.30 MiB | 970.00 KiB/s, done.
+  Resolving deltas: 100% (131/131), done.
+$ git remote add upstream https://github.com/techno-aads/java-advanced-2017.git
+$ git fetch upstream
+```
+Затем перейдите в бранч со своей [фамилией](https://github.com/techno-aads/java-advanced-2017/branches/all),
+пишите в нём код и отправляйте как Pull Request [в этот репозиторий](https://github.com/techno-aads/java-advanced-2017)
+в бранч со своей фамилией.
+
+Таким образом можно будет проще сдавать домашние частями, благодаря вливания изменений в вашу ветку после ревью.
+Также перед созданием PR нужно сделать ```git pull origin solve```, поскольку я потенциально могу внести туда изменения. 
+
+Дополнительная информация
+----
+Note: Запуск через IDEA не генерирует сертификат — это ОК
+
+Запуск тестов для первого задания через IDEA описан в [info.kgeorgiy.java.advanced.walk.Tester](java/info/kgeorgiy/java/advanced/walk/Tester.java)
+ 
+Запуск тестов для второго задания через IDEA описан в [info.kgeorgiy.java.advanced.arrayset.Tester](java/info/kgeorgiy/java/advanced/arrayset/Tester.java) 
+
+Описание тестов к курсу «Технологии Java»
 ====
 
 [Условия домашних заданий](http://www.kgeorgiy.info/courses/java-advanced/homeworks.html)
