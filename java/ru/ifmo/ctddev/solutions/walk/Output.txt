@@ -1,0 +1,7 @@
+050c5d2e C:/GitHub/java-advanced-2017/java/info/kgeorgiy/java/advanced/walk/samples/1
+2076af58 C:/GitHub/java-advanced-2017/java/info/kgeorgiy/java/advanced/walk/samples/12
+72d607bb C:/GitHub/java-advanced-2017/java/info/kgeorgiy/java/advanced/walk/samples/123
+81ee2b55 C:/GitHub/java-advanced-2017/java/info/kgeorgiy/java/advanced/walk/samples/1234
+050c5d2e C:/GitHub/java-advanced-2017/java/info/kgeorgiy/java/advanced/walk/samples/1
+447241c5 C:/GitHub/java-advanced-2017/java/info/kgeorgiy/java/advanced/walk/samples/binary
+00000000 C:/GitHub/java-advanced-2017/java/info/kgeorgiy/java/advanced/walk/samples/no-such-file
