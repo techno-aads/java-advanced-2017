@@ -41,9 +41,6 @@ public class Implementor implements Impler, JarImpler {
                 writer.close();
             }
         }
-        catch (ImplerException e) {
-            throw e;
-        }
         catch (Exception e) {
             throw new ImplerException(e);
         }
@@ -70,7 +67,7 @@ public class Implementor implements Impler, JarImpler {
             executeCommand(directory, "jar", "cf",
                     jarPath.getFileName().toString(), classPath.toString());
         }
-        catch (ImplerException e) { throw e; }
+      //  catch (ImplerException e) { throw e; }
         catch (Exception e) { throw new ImplerException(e); }
     }
 
@@ -109,15 +106,17 @@ public class Implementor implements Impler, JarImpler {
         Writer(File output, Class<T> aClass) throws Exception {
             super(output);
 
-            this.aClass   = aClass;
-            this.methods  = collectNecessaryMethods(aClass);
-            this.aPackage = aClass.getPackage();
-
+            try {
+                this.aClass = aClass;
+                this.methods = collectNecessaryMethods(aClass);
+                this.aPackage = aClass.getPackage();
+            }
+            catch (NullPointerException e) {e.printStackTrace();}
             this.imports = new TreeSet<>(CLASS_COMPARATOR);
             this.imports.add(aClass);
             for (Method method: this.methods) addImportsFrom(method);
 
-            this.constructors = new LinkedList<>();
+            this.constructors = new ArrayList<>();
             for (Constructor<?> constructor: aClass.getDeclaredConstructors()) {
                 if (!Modifier.isPrivate(constructor.getModifiers())) {
                     this.constructors.add(constructor);
@@ -219,10 +218,10 @@ public class Implementor implements Impler, JarImpler {
 
                 for (int i = 0; i < exceptions.length; i++) {
                     if (i == 0) {
-                        printf(" throws ");
+                        print(" throws ");
                     }
                     else {
-                        printf(", ");
+                        print(", ");
                     }
                     print(exceptions[i].getSimpleName());
                 }
@@ -265,7 +264,6 @@ public class Implementor implements Impler, JarImpler {
 
             return String.join(",", formattedArgs);
         }
-
 
 
         /**
