@@ -1,23 +1,44 @@
 package ru.ifmo.ctddev.solutions.walk;
 
-import java.nio.file.Path;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+/**
+ * @author Sergey Egorov
+ */
 
 public class HashWalker {
+    private static final int FNV_32_PRIME = 0x01000193;
+    private static final int START_HASH_VALUE = 0x811c9dc5;
+    private static final int BUFFER_SIZE = 100_000;
 
-    protected static final String INCORRECT_FILE_HASH = "00000000";
-
-    //fixme: change method signature if needed
-    protected static String calculateHash(Path file) {
-        int currentHash = 0x811c9dc5;
-        //todo: for all bytes — currentHash = updateHash(currentHash, nextByte);
-        return String.format("%08x", currentHash);
+    public HashWalker() {
     }
 
-    protected static String getIncorrectFileHash(String fileName) {
-        return INCORRECT_FILE_HASH + " " + fileName;
+    private static int fnvHash(final int startHash, final byte[] bytes, final int length) {
+        int hash = startHash;
+        for (int i = 0; i < length; i++) {
+            hash = (hash * FNV_32_PRIME) ^ (0xff & bytes[i]);
+        }
+        return hash;
     }
 
-    private static int updateHash(int currentHash, byte nextByte) {
-        return (currentHash * 0x01000193) ^ (nextByte & 0xff);
+    public static int fileFnvHash(final File file) throws IOException {
+        int result = 0;
+        byte[] buffer = new byte[BUFFER_SIZE];
+        InputStream inputStream = new FileInputStream(file);
+        int length = inputStream.read(buffer);
+        do {
+            if (result == 0) {
+                result = fnvHash(START_HASH_VALUE, buffer, length);
+            } else {
+                result = fnvHash(result, buffer, length);
+            }
+            length = inputStream.read(buffer);
+        }
+        while (length != -1);
+        return result;
     }
 }
