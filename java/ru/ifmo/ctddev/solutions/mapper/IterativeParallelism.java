@@ -1,66 +1,65 @@
-package ru.ifmo.ctddev.solutions.concurrent;
+package ru.ifmo.ctddev.solutions.mapper;
+
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 import info.kgeorgiy.java.advanced.concurrent.ListIP;
+import info.kgeorgiy.java.advanced.mapper.ParallelMapper;
 
 /**
  * @author Sergey Egorov
  */
 public class IterativeParallelism implements ListIP {
 
-    private <T, R> List<R> executeParallel(int countThreads, List<? extends T> list, Function<List<? extends T>, R> funcName) throws InterruptedException {
-        if (countThreads > list.size()) {
-            countThreads = list.size() / 5 + 1;
+    private ParallelMapper parallelMapper;
+
+    public IterativeParallelism(ParallelMapper parallelMapper) {
+        this.parallelMapper = parallelMapper;
+    }
+
+    private <T> List<List<? extends T>> submitList(int threadCounter, List<? extends T> list) throws InterruptedException {
+        if (threadCounter > list.size()) {
+            threadCounter = list.size() / 5 + 1;
         }
-        R[] results = (R[]) new Object[countThreads];
 
-        List<Thread> threads = new ArrayList<>();
+        List<List<? extends T>> results = new ArrayList<>();
 
-        int subListSize = list.size() / countThreads;
-        for (int i = 0; i < countThreads; i++) {
-            int threadCount = countThreads;
+        int subListSize = list.size() / threadCounter;
+        for (int i = 0; i < threadCounter; i++) {
+            int threadCount = threadCounter;
             int threadIndex = i;
 
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    if (threadCount - 1 != threadIndex) {
-                        results[threadIndex] = funcName.apply(list.subList(subListSize * threadIndex, subListSize * (threadIndex + 1)));
-                    } else {
-                        results[threadIndex] = funcName.apply(list.subList(subListSize * threadIndex, list.size()));
-                    }
-                }
-            });
-            threads.add(thread);
-            thread.start();
-        }
-        for (Thread thread : threads) {
-            thread.join();
+            if (threadCount - 1 != threadIndex) {
+                results.add(list.subList(subListSize * threadIndex, subListSize * (threadIndex + 1)));
+            } else {
+                results.add(list.subList(subListSize * threadIndex, list.size()));
+            }
         }
 
-        return Arrays.asList(results);
+        return results;
     }
 
     @Override
     public <T> T maximum(int countThread, List<? extends T> list, Comparator<? super T> comparator) throws InterruptedException {
         Function<List<? extends T>, T> func = l -> Collections.max(l, comparator);
-        List<T> listMax = executeParallel(countThread, list, func);
-        return Collections.max(listMax, comparator);
+        List<List<? extends T>> listListMax = submitList(countThread, list);
+        return Collections.max(parallelMapper.map(func, listListMax), comparator);
     }
 
     @Override
     public <T> T minimum(int countThread, List<? extends T> list, Comparator<? super T> comparator) throws InterruptedException {
-        Function<List<? extends T>, T> func = l -> Collections.min(l, comparator);
-        return Collections.min(executeParallel(countThread, list, func), comparator);
+        Function<List<? extends T>, T> func = l -> Collections.max(l, comparator);
+        List<List<? extends T>> listListMin = submitList(countThread, list);
+        return Collections.min(parallelMapper.map(func, listListMin), comparator);
     }
 
     @Override
     public <T> boolean all(int countThread, List<? extends T> list, Predicate<? super T> predicate) throws InterruptedException {
         Function<List<? extends T>, Boolean> func = l -> l.stream().allMatch(predicate);
-        List<Boolean> listBoolean = executeParallel(countThread, list, func);
+        List<List<? extends T>> listListBoolean = submitList(countThread, list);
+        List<Boolean> listBoolean = parallelMapper.map(func, listListBoolean);
         for (Boolean b : listBoolean) {
             if (!b) return false;
         }
@@ -70,7 +69,8 @@ public class IterativeParallelism implements ListIP {
     @Override
     public <T> boolean any(int countThread, List<? extends T> list, Predicate<? super T> predicate) throws InterruptedException {
         Function<List<? extends T>, Boolean> func = l -> l.stream().anyMatch(predicate);
-        List<Boolean> listBoolean = executeParallel(countThread, list, func);
+        List<List<? extends T>> listListBoolean = submitList(countThread, list);
+        List<Boolean> listBoolean = parallelMapper.map(func, listListBoolean);
         for (Boolean b : listBoolean) {
             if (b) return true;
         }
@@ -92,3 +92,4 @@ public class IterativeParallelism implements ListIP {
         throw new UnsupportedOperationException();
     }
 }
+
