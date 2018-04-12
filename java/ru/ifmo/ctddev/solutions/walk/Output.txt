@@ -1,7 +1,12 @@
-050c5d2e C:/GitHub/java-advanced-2017/java/info/kgeorgiy/java/advanced/walk/samples/1
-2076af58 C:/GitHub/java-advanced-2017/java/info/kgeorgiy/java/advanced/walk/samples/12
-72d607bb C:/GitHub/java-advanced-2017/java/info/kgeorgiy/java/advanced/walk/samples/123
-81ee2b55 C:/GitHub/java-advanced-2017/java/info/kgeorgiy/java/advanced/walk/samples/1234
-050c5d2e C:/GitHub/java-advanced-2017/java/info/kgeorgiy/java/advanced/walk/samples/1
-447241c5 C:/GitHub/java-advanced-2017/java/info/kgeorgiy/java/advanced/walk/samples/binary
-00000000 C:/GitHub/java-advanced-2017/java/info/kgeorgiy/java/advanced/walk/samples/no-such-file
+Path:"C:\GitHub\java-advanced-2017\java\info\kgeorgiy\java\advanced\walk\samples\1" Hash:811d69050c5d2e Elapsed time: 0.348205921 seconds
+Path:"C:\GitHub\java-advanced-2017\java\info\kgeorgiy\java\advanced\walk\samples\12" Hash:344658b02076af58 Elapsed time: 0.004420786 seconds
+Path:"C:\GitHub\java-advanced-2017\java\info\kgeorgiy\java\advanced\walk\samples\123" Hash:fade13f272d607bb Elapsed time: 0.003912955 seconds
+Path:"C:\GitHub\java-advanced-2017\java\info\kgeorgiy\java\advanced\walk\samples\1234" Hash:de0c3cb281ee2b55 Elapsed time: 0.0038971 seconds
+Path:"C:\GitHub\java-advanced-2017\java\info\kgeorgiy\java\advanced\walk\samples\1" Hash:811d69050c5d2e Elapsed time: 0.003781917 seconds
+Path:"C:\GitHub\java-advanced-2017\java\info\kgeorgiy\java\advanced\walk\samples\binary" Hash:6af63b5c447241c5 Elapsed time: 0.003753005 seconds
+Path:"C:\GitHub\java-advanced-2017\java\info\kgeorgiy\java\advanced\walk\samples\no-such-file" Hash:00000000 Elapsed time: 0.004173166 seconds
+Path:"C:\GitHub\java-advanced-2017\java\info\kgeorgiy\java\advanced\walk\samples\1" Hash:811d69050c5d2e Elapsed time: 0.006087441 seconds
+Path:"C:\GitHub\java-advanced-2017\java\info\kgeorgiy\java\advanced\walk\samples\12" Hash:344658b02076af58 Elapsed time: 0.005170175 seconds
+Path:"C:\GitHub\java-advanced-2017\java\info\kgeorgiy\java\advanced\walk\samples\123" Hash:fade13f272d607bb Elapsed time: 0.003807099 seconds
+Path:"C:\GitHub\java-advanced-2017\java\info\kgeorgiy\java\advanced\walk\samples\1234" Hash:de0c3cb281ee2b55 Elapsed time: 0.004543897 seconds
+Path:"C:\GitHub\java-advanced-2017\java\info\kgeorgiy\java\advanced\walk\samples\binary" Hash:6af63b5c447241c5 Elapsed time: 0.004288816 seconds
