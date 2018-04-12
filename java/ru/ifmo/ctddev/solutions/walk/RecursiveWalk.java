@@ -1,5 +1,10 @@
 package ru.ifmo.ctddev.solutions.walk;
 
-public class RecursiveWalk {
-    //todo
+/* redundant  class*/
+public class RecursiveWalk extends Walk {
+
+    /* redundant  method*/
+    public static void main(String[] args) {
+        //Walk.main(args);
+    }
 }
