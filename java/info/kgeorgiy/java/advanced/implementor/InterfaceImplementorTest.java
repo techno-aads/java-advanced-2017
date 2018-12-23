@@ -10,17 +10,14 @@ import org.junit.Test;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.junit.runners.MethodSorters;
-import org.omg.DynamicAny.DynAny;
 
 import javax.accessibility.Accessible;
 import javax.accessibility.AccessibleAction;
-import javax.annotation.Generated;
 import javax.management.Descriptor;
 import javax.management.loading.PrivateClassLoader;
 import javax.sql.rowset.CachedRowSet;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
-import javax.xml.bind.Element;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
@@ -62,17 +59,17 @@ public class InterfaceImplementorTest extends BaseTest {
 
     @Test
     public void test02_standardMethodlessInterfaces() throws IOException {
-        test(false, Element.class, PrivateClassLoader.class);
+        test(false, PrivateClassLoader.class);
     }
 
     @Test
     public void test03_standardInterfaces() throws IOException {
-        test(false, Accessible.class, AccessibleAction.class, Generated.class);
+        test(false, Accessible.class, AccessibleAction.class);
     }
 
     @Test
     public void test04_extendedInterfaces() throws IOException {
-        test(false, Descriptor.class, CachedRowSet.class, DynAny.class);
+        test(false, Descriptor.class, CachedRowSet.class);
     }
 
     @Test

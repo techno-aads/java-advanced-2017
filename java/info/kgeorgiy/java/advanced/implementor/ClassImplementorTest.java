@@ -4,7 +4,6 @@ import info.kgeorgiy.java.advanced.implementor.examples.ClassWithPackagePrivateC
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-import org.omg.CORBA_2_3.ORB;
 
 import javax.annotation.processing.Completions;
 import javax.imageio.IIOException;
@@ -62,11 +61,6 @@ public class ClassImplementorTest extends InterfaceImplementorTest {
     @Test
     public void test14_nonPublicAbstractMethod() throws IOException {
         test(false, RMIServerImpl.class, RMIIIOPServerImpl.class);
-    }
-
-    @Test
-    public void test15_inheritedNonPublicAbstractMethod() throws IOException {
-        test(false, ORB.class);
     }
 
     @Test
